@@ -1,0 +1,262 @@
+
+\begin{table}[h]
+\centering
+\caption{Average performance of the five foraminifera species distribution models (SDMs) as trained on different subsets of the final choice of environmental predictors. All performance measures but the standard deviation of the partial dependency plots ($SD_{PDP}$) are calculated on the testing set. $R^2$ ranges from $-\infty$ to $+1$, with a perfect fit of the model and full variance explained indicated by a value of $+1$. Root Mean Square Error (RMSE) is an error measure, hence smaller values show higher accuracy. Nash-Sutcliffe-efficiency (NSE) indicates improvement of the model predictions over using the observation mean, with perfect model performance indicated by a value of $+1$ and a value of 0 indicating that the models perform no better than the observation mean. For a robust predictor set, the normalized standard deviation of the model predictions ($nSD$) should be as low as possible. Similarly, $SD_{PDP}$ should be low to indicate that the five SDMs learned similar PDP curves. The total rank indicates the sum of the rankings for each metric, where lower ranks show better model performance. The predictor sets are ordered by their total rank value, with our final predictor choice highlighted in bold.\\}\label{tab:model_performance_foram_predictor_sets}
+\small
+\begin{tabularx}{\textwidth}{lXlllllll}
+
+\toprule
+   & Predictor Set                                                              & $R^2_{test}$ & $RMSE_{test}$ & $NSE_{test}$ & $nSD_{test}$ & $SD_{PDP}$ & Total Rank \\ \midrule \midrule
+   
+   
+1 &
+  Temperature, Chlorophyll-a, MLD &
+  0.13 &
+  0.81 &
+  0.16 &
+  0.33 &
+  0.19 &
+  40 \\ \\
+2 &
+  Temperature, Chlorophyll-a, MLD, EKE, Oxygen &
+  0.06 &
+  0.82 &
+  0.17 &
+  0.34 &
+  0.18 &
+  46 \\ \\
+3 &
+  Temperature, Chlorophyll-a &
+  0.09 &
+  0.83 &
+  0.1 &
+  0.32 &
+  0.18 &
+  48 \\ \\
+4 &
+  Temperature, Chlorophyll-a, MLD, EKE &
+  0.12 &
+  0.81 &
+  0.14 &
+  0.36 &
+  0.18 &
+  49 \\ \\
+5 &
+  MLD, EKE, Salinity, Temperature, Chlorophyll-a &
+  0 &
+  0.84 &
+  0.2 &
+  0.36 &
+  0.18 &
+  52 \\ \\
+6 &
+  Temperature, Chlorophyll-a, EKE, Oxygen &
+  0.09 &
+  0.82 &
+  0.15 &
+  0.31 &
+  0.22 &
+  52 \\ \\
+7 &
+  \textbf{Temperature, Chlorophyll-a, EKE} &
+  0.1 &
+  0.82 &
+  0.11 &
+  0.33 &
+  0.19 &
+  53 \\ \\
+8 &
+  MLD, EKE, Salinity, Silicate, Temperature, Chlorophyll-a &
+  -0.01 &
+  0.86 &
+  0.23 &
+  0.41 &
+  0.18 &
+  63 \\ \\
+9 &
+  Temperature, Chlorophyll-a, MLD, Oxygen &
+  0.05 &
+  0.83 &
+  0.17 &
+  0.33 &
+  0.22 &
+  64 \\ \\
+10 & MLD, Oxygen, EKE, Salinity, Silicate, Temperature, Chlorophyll-a & -0.09 & 0.86 & 0.22 & 0.35 & 0.21 & 71 \\ \\
+11 &
+  MLD, EKE, Silicate, Temperature, Chlorophyll-a &
+  -0.06 &
+  0.88 &
+  0.2 &
+  0.36 &
+  0.18 &
+  73 \\ \\
+12 &
+  Oxygen, EKE, Salinity, Temperature, Chlorophyll-a &
+  0.02 &
+  0.84 &
+  0.19 &
+  0.4 &
+  0.22 &
+  75 \\ \\
+13 &
+  Oxygen, EKE, Salinity, Silicate, Temperature, Chlorophyll-a &
+  -0.02 &
+  0.85 &
+  0.21 &
+  0.36 &
+  0.23 &
+  76 \\ \\
+14 &
+  Temperature, Chlorophyll-a, Oxygen &
+  0.06 &
+  0.83 &
+  0.14 &
+  0.32 &
+  0.24 &
+  77 \\ \\
+15 &
+  EKE, Salinity, Temperature, Chlorophyll-a &
+  -0.02 &
+  0.86 &
+  0.18 &
+  0.35 &
+  0.22 &
+  79 \\ \\
+16 &
+  MLD, Oxygen, EKE, Salinity, Temperature, Chlorophyll-a &
+  -0.05 &
+  0.85 &
+  0.2 &
+  0.36 &
+  0.22 &
+  80 \\ \\
+17 &
+  MLD, Oxygen, EKE, Silicate, Temperature, Chlorophyll-a &
+  -0.06 &
+  0.86 &
+  0.2 &
+  0.36 &
+  0.21 &
+  83 \\ \\
+18 &
+  MLD, Oxygen, Salinity, Temperature, Chlorophyll-a &
+  -0.05 &
+  0.85 &
+  0.21 &
+  0.59 &
+  0.22 &
+  85 \\ \\
+19 &
+  EKE, Salinity, Silicate, Temperature, Chlorophyll-a &
+  -0.1 &
+  0.89 &
+  0.21 &
+  0.42 &
+  0.19 &
+  87 \\ \\
+20 &
+  EKE, Silicate, Temperature, Chlorophyll-a &
+  -0.09 &
+  0.9 &
+  0.17 &
+  0.35 &
+  0.2 &
+  90 \\ \\
+21 &
+  MLD, Oxygen, Salinity, Silicate, Temperature, Chlorophyll-a &
+  -0.05 &
+  0.85 &
+  0.25 &
+  0.44 &
+  0.23 &
+  90 \\ \\
+22 &
+  Oxygen, Salinity, Temperature, Chlorophyll-a &
+  0.05 &
+  0.83 &
+  0.18 &
+  0.71 &
+  0.24 &
+  91 \\ \\
+23 &
+  MLD, Oxygen, Silicate, Temperature, Chlorophyll-a &
+  -0.17 &
+  0.89 &
+  0.21 &
+  0.41 &
+  0.2 &
+  96 \\ \\
+24 &
+  Oxygen, EKE, Silicate, Temperature, Chlorophyll-a &
+  -0.04 &
+  0.86 &
+  0.18 &
+  0.37 &
+  0.22 &
+  97 \\ \\
+25 &
+  MLD, Salinity, Silicate, Temperature, Chlorophyll-a &
+  -0.17 &
+  0.89 &
+  0.22 &
+  0.4 &
+  0.22 &
+  100 \\ \\
+26 &
+ Salinity, Silicate, Temperature, Chlorophyll-a &
+  -0.14 &
+  0.89 &
+  0.2 &
+  0.36 &
+  0.22 &
+  100 \\ \\
+27 &
+  Oxygen, Salinity, Silicate, Temperature, Chlorophyll-a &
+  -0.04 &
+  0.86 &
+  0.2 &
+  0.72 &
+  0.27 &
+  108 \\ \\
+28 &
+  MLD, Silicate, Temperature, Chlorophyll-a &
+  -0.27 &
+  0.93 &
+  0.17 &
+  0.35 &
+  0.21 &
+  109 \\ \\
+29 &
+  Silicate, Temperature, Chlorophyll-a &
+  -0.27 &
+  0.94 &
+  0.15 &
+  0.33 &
+  0.22 &
+  118 \\ \\
+30 &
+  MLD, Salinity, Temperature, Chlorophyll-a &
+  -0.98 &
+  1.06 &
+  0.21 &
+  0.37 &
+  0.24 &
+  122 \\ \\
+31 &
+  Oxygen, Silicate, Temperature, Chlorophyll-a &
+  -0.17 &
+  0.91 &
+  0.15 &
+  0.42 &
+  0.21 &
+  123 \\ \\
+32 &
+ Salinity, Temperature, Chlorophyll-a &
+  -0.41 &
+  0.96 &
+  0.17 &
+  0.41 &
+  0.27 &
+  143 \\ \bottomrule
+\end{tabularx}
+\end{table}
