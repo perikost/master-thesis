@@ -1,1 +1,15 @@
 \chapter{Conclusion}\label{chapter:Conclusion}
+We evaluated a wide range of data storage options for Ethereum DApps. 
+% \sout{First and foremost, we examined the cost related to storing data in SC storage, as well as in alternative data stores, like the event-logs, a transaction’s payload, and the unused function parameters.}
+First and foremost, we examined the use of SC storage, and illustrated that relying solely on it for data management might render a DApp economically non-viable. On this basis, we explored alternative data stores like the event-logs, a transaction’s payload, and the unused function parameters, and demonstrated how they can lower the overall cost at the expense of retrieval performance or implementation complexity. Furthermore, hybrid approaches based on IPFS and Swarm were examined. In all cases, besides the associated cost, retrieval performance was taken into consideration. Through a comparative study, we identified benefits and drawbacks of each approach. 
+
+% \textcolor{blue}{We (elaborated on the fact) / clarified that data that is essential for the SC’s proper operation ought to be saved in SC storage, but demonstrated that other even unexplored alternatives can lower the overall cost}
+% We summarized our findings in table X 
+
+
+
+The results of our work, part of which are summarized in Table \ref{table:overall}, confirm that there exists a variety of options for Ethereum DApps to store data, which significantly differ in respect to gas consumption, retrieval latency and implementation complexity. Consequently, it is of critical importance for DApp designers and developers to choose the appropriate data management scheme for their Ethereum applications. In this regard, we hope that our observations can be used as a guide in the search for proper data management methods.
+
+%\textcolor{blue}{An evaluation of the presented methods on real-world use-cases, in conjunction with an assessment of the performance of IPFS and Swarm regarding the retrieval of data from remote nodes, would further highlight \hl{the significance of this work.}}
+
+A possible direction for future research would be the evaluation of the presented methods on real-world use-cases, in conjunction with an assessment of the performance of IPFS and Swarm regarding the retrieval of data from remote nodes. Another interesting idea would be to conduct an analogous study on other blockchain infrastructures, EVM-based or not.
