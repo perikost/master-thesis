@@ -14,7 +14,8 @@
 %             2013/03/08	(Soren Ebbesen)
 %             2014/03/13	(Soren Ebbesen)
 % ______________________________________________________________________________
-\documentclass[12pt,twoside,a4paper,fleqn]{report}
+%  See: https://tex.stackexchange.com/a/601916
+\documentclass[12pt,twoside,a4paper,fleqn, hyphens]{report}
 \usepackage{siunitx}
 \usepackage[onehalfspacing]{setspace}
 %\usepackage{lineno}\linenumbers
@@ -24,6 +25,31 @@
 \usepackage[english,mt]{ethidsc} % Special IDSC styles and commands      	
 								 % {german}/english: language of headings, etc.
 								 % {st}/bt/mt: {semester}/bachelor/master thesis
+
+% MY PACKAGES
+\usepackage{enumitem}
+\usepackage{setspace}
+\usepackage{xcolor, soul}                         % highlight text
+\usepackage{blindtext}
+\usepackage{mathtools}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage[normalem]{ulem}
+\useunder{\uline}{\ul}{}
+\usepackage{pdflscape} % {pdflscape} rotate page and content or {lscape} rotate only content
+\usepackage{longtable}
+\usepackage{anyfontsize}
+\usepackage{enumitem}
+\usepackage{subcaption}
+\usepackage{caption}
+\usepackage{orcidlink}
+\usepackage{array}
+\newcounter{rowno}
+% \usepackage[hyphens]{url}
+\usepackage{hyphenat}
+\hyphenation{block-chain e-the-re-um}
 
 
 							
