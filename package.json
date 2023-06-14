@@ -1,0 +1,19 @@
+{
+  "name": "master-thesis",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/perikost/master-thesis.git"
+  },
+  "author": "Periklis Kostamis <perikliskostamis@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/perikost/master-thesis/issues"
+  },
+  "homepage": "https://github.com/perikost/master-thesis#readme"
+}
