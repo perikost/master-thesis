@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "generate-tables": "node LaTexTableGenerator.js"
   },
   "repository": {
     "type": "git",
@@ -15,5 +16,9 @@
   "bugs": {
     "url": "https://github.com/perikost/master-thesis/issues"
   },
-  "homepage": "https://github.com/perikost/master-thesis#readme"
+  "homepage": "https://github.com/perikost/master-thesis#readme",
+  "dependencies": {
+    "commander": "^11.0.0",
+    "lodash": "^4.17.21"
+  }
 }
