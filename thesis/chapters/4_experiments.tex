@@ -418,6 +418,221 @@ As we can observe from Fig.~\ref{fig: ipfs_swarm_retrieve}, Swarm lacks in perfo
 We ought to clarify that by conducting these experiments we meant to compare the performance of IPFS and Swarm, regarding local upload and retrieval. The results are nothing but representative of how these platforms behave when exchanging data between remote nodes. Besides that, Swarm updated its networking protocol from DevP2P to LibP2P and introduced a new client, which we used during our experiments. The fact that it is in primary stage and improvements are frequently made might render our results obsolete in the near future.
 \subsection{Remote Upload and retrieval performance - IPFS \& SWARM}\label{subsection:}
 
+\paragraph{IPFS}
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+\begin{table}[H]
+\caption{Table for experiment disconnect}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb              \\ \midrule
+chetemi-9.lille  & 612  & 282  & 1010  & 891  & 1679  & 2264  & 1929  & 16 \\
+dahu-32.grenoble  & 146  & 456  & 2133  & 679  & 1065  & 857  & 1158  & 16 \\
+degroot  & 1933  & 2014  & 2192  & 1622  & 1892  & 2639  & 3028  & 30 \\
+graphite-4.nancy  & 835  & 1352  & 1868  & 723  & 1305  & 1440  & 1980  & 24 \\
+paravance-51.rennes  & 1097  & 2360  & 4096  & 2835  & 1403  & 2882  & 1874  & 18 \\
+uvb-9.sophia  & 425  & 617  & 3902  & 1056  & 1228  & 779  & 1796  & 16 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+\begin{table}[H]
+\caption{Table for experiment do-not-cache}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+chetemi-9.lille  & 1560  & 80  & 96  & 120  & 133  & 433  & 574  & 8 \\
+dahu-9.grenoble  & 1189  & 261  & 111  & 134  & 142  & 228  & 602  & 8 \\
+degroot  & 1457  & 162  & 1349  & 293  & 344  & 482  & 1374  & 13 \\
+graphite-1.nancy  & 980  & 70  & 100  & 134  & 139  & 221  & 611  & 11 \\
+paravance-8.rennes  & 2564  & 69  & 101  & 130  & 150  & 214  & 555  & 11 \\
+uvb-9.sophia  & 3788  & 1441  & 104  & 148  & 164  & 262  & 798  & 8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+\begin{table}[H]
+\caption{Table for experiment do-not-cache-disconnect}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+chetemi-9.lille  & 83  & 485  & 1033  & 1122  & 1164  & 2281  & 1549  & 4 \\
+dahu-32.grenoble  & 707  & 992  & 895  & 1144  & 1627  & 983  & 1713  & 7 \\
+degroot  & 1407  & 1441  & 1552  & 1605  & 1925  & 3428  & 2802  & 16 \\
+graphite-4.nancy  & 743  & 2391  & 686  & 710  & 2416  & 693  & 2042  & 8 \\
+paravance-51.rennes  & 667  & 938  & 288  & 592  & 1351  & 988  & 1194  & 7 \\
+uvb-9.sophia  & 103  & 499  & 1760  & 895  & 2538  & 1274  & 2691  & 4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+\begin{table}[H]
+\caption{Table for experiment normal}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+chetemi-9.lille  & 308  & 139  & 186  & 257  & 1549  & 519  & 1606  & 21 \\
+dahu-32.grenoble  & 453  & 123  & 165  & 219  & 252  & 588  & 1539  & 23 \\
+degroot  & 849  & 161  & 204  & 287  & 439  & 802  & 2260  & 25 \\
+graphite-4.nancy  & 357  & 120  & 150  & 191  & 247  & 464  & 1291  & 23 \\
+paravance-51.rennes  & 397  & 117  & 166  & 215  & 232  & 411  & 1527  & 24 \\
+uvb-9.sophia  & 432  & 145  & 175  & 248  & 325  & 672  & 2079  & 24 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+\paragraph{IPFS - miletus degroot nancy}
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+\begin{table}[H]
+\caption{Table for experiment disconnect}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+degroot  & 945  & 639  & 2375  & 771  & 1761  & 801  & 3308  & 12 \\
+graphite-3.nancy  & 1618  & 938  & 1601  & 4838  & 1653  & 2231  & 5079  & 12 \\
+miletus  & 443  & 2086  & 1064  & 3974  & 2504  & 3101  & 7313  & 12 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+\begin{table}[H]
+\caption{Table for experiment do-not-cache}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+degroot  & 158  & 100  & 117  & 143  & 232  & 522  & 2008  & 16 \\
+graphite-3.nancy  & 244  & 152  & 164  & 195  & 288  & 678  & 1881  & 15 \\
+miletus  & 173  & 155  & 102  & 170  & 501  & 1269  & 3672  & 14 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+\begin{table}[H]
+\caption{Table for experiment do-not-cache-disconnect}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+degroot  & 1993  & 343  & 755  & 385  & 3017  & 1207  & 2705  & 12 \\
+graphite-3.nancy  & 532  & 909  & 1141  & 1285  & 1486  & 4015  & 2876  & 7 \\
+miletus  & 302  & 1790  & 6352  & 1328  & 2343  & 3955  & 6663  & 9 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+\begin{table}[H]
+\caption{Table for experiment normal}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+degroot  & 200  & 105  & 123  & 144  & 232  & 503  & 1810  & 16 \\
+graphite-3.nancy  & 159  & 145  & 160  & 179  & 208  & 381  & 1258  & 16 \\
+miletus  & 362  & 275  & 194  & 214  & 521  & 1738  & 6155  & 16 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+
+\paragraph{Swarm}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+\begin{table}[H]
+\caption{Table for experiment disconnect}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+chetemi-9.lille  & 23  & 106  & 316  & 294  & 1038  & 2725  & 8410  & 9 \\
+dahu-9.grenoble  & 86  & 225  & 376  & 460  & 1146  & 3384  & 9339  & 9 \\
+degroot  & 148  & 347  & 425  & 620  & 2008  & 5025  & 9884  & 3 \\
+graphite-4.nancy  & 63  & 208  & 327  & 432  & 1102  & 3129  & 7469  & 9 \\
+paravance-9.rennes  & 58  & 179  & 402  & 360  & 1018  & 3341  & 8612  & 10 \\
+uvb-9.sophia  & 87  & 255  & 451  & 534  & 1377  & 3834  & 9508  & 6 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+\begin{table}[H]
+\caption{Table for experiment do-not-cache}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+chetemi-9.lille  & 13  & 135  & 153  & 343  & 895  & 2671  & 6304  & 5 \\
+dahu-9.grenoble  & 34  & 224  & 287  & 476  & 1189  & 3512  & 11754  & 6 \\
+degroot  & 104  & 327  & 521  & 778  & 1744  & 4632  & 13793  & 9 \\
+graphite-4.nancy  & 16  & 187  & 203  & 475  & 1153  & 3050  & 7832  & 4 \\
+paravance-9.rennes  & 21  & 154  & 146  & 444  & 983  & 3155  & 7520  & 3 \\
+uvb-9.sophia  & 54  & 292  & 280  & 489  & 1136  & 3402  & 11738  & 6 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+\begin{table}[H]
+\caption{Table for experiment do-not-cache-disconnect}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+chetemi-9.lille  & 34  & 151  & 177  & 405  & 876  & 2616  & 7975  & 5 \\
+dahu-9.grenoble  & 33  & 231  & 285  & 447  & 1073  & 3155  & 9418  & 5 \\
+degroot  & 222  & 358  & 372  & 1040  & 1698  & 5321  & 11447  & 2 \\
+graphite-4.nancy  & 32  & 234  & 326  & 382  & 920  & 2827  & 7647  & 5 \\
+paravance-9.rennes  & 37  & 215  & 316  & 439  & 1043  & 3370  & 8176  & 6 \\
+uvb-9.sophia  & 105  & 229  & 337  & 449  & 1212  & 3343  & 8950  & 6 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+\begin{table}[H]
+\caption{Table for experiment normal}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+chetemi-9.lille  & 49  & 81  & 191  & 289  & 673  & 2086  & 9710  & 11 \\
+dahu-9.grenoble  & 43  & 171  & 220  & 440  & 864  & 2633  & 9461  & 11 \\
+degroot  & 119  & 331  & 524  & 621  & 1721  & 4418  & 12738  & 11 \\
+graphite-4.nancy  & 32  & 186  & 229  & 426  & 915  & 2838  & 8037  & 8 \\
+paravance-9.rennes  & 64  & 144  & 278  & 447  & 1017  & 2967  & 9319  & 10 \\
+uvb-9.sophia  & 58  & 175  & 195  & 453  & 895  & 2677  & 10532  & 10 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
 
 % TODO:
 
