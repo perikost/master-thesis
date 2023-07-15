@@ -510,3 +510,110 @@
   howpublished = {https://docs.libp2p.io/},
   langid = {american}
 }
+
+@article{crosby_2007,
+  title = {An {{Analysis}} of {{BitTorrent}}'s {{Two Kademlia-Based DHTs}}},
+  author = {Crosby, Scott A. and Wallach, Dan S.},
+  year = {2007},
+  month = may,
+  urldate = {2023-07-12},
+  abstract = {Despite interest in structured peer-to-peer overlays and their scalability to millions of nodes, few, if any, overlays operate at that scale. This paper considers the distributed hash table extensions supported by modern BitTorrent clients, which implement a Kademlia-style structured overlay network among millions of BitTorrent users. As there are two disjoint Kademlia-based DHTs in use, we collected two weeks of traces from each DHT. We examine churn, reachability, latency, and liveness of nodes in these overlays, and identify a variety of problems, such as median lookup times of over a minute. We show that Kademlia's choice of iterative routing and its lack of a preferential refresh of its local neighborhood cause correctness problems and poor performance. We also identify implementation bugs, design issues, and security concerns that limit the effectiveness of these DHTs and we offer possible solutions for their improvement.},
+  copyright = {You are granted permission for the noncommercial reproduction, distribution, display, and performance of this technical report in any format, but this permission is only for a period of forty-five (45) days from the most recent time that you verified that this technical report is still available from the Computer Science Department of Rice University under terms that include this permission. All other rights are reserved by the author(s).},
+  langid = {english},
+  annotation = {Accepted: 2017-08-02T22:03:04Z}
+}
+
+@inproceedings{jimenez_2009,
+  title = {Connectivity Properties of {{Mainline BitTorrent DHT}} Nodes},
+  booktitle = {2009 {{IEEE Ninth International Conference}} on {{Peer-to-Peer Computing}}},
+  author = {Jimenez, Raul and Osmani, Flutra and Knutsson, Bjorn},
+  year = {2009},
+  month = sep,
+  pages = {262--270},
+  publisher = {{IEEE}},
+  address = {{Seattle, WA, USA}},
+  doi = {10.1109/P2P.2009.5284530},
+  urldate = {2023-07-12},
+  abstract = {The birth and evolution of Peer-to-Peer (P2P) protocols have, for the most part, been about peer discovery. Napster, one of the first P2P protocols, was basically FTP/HTTP plus a way of finding hosts willing to send you the file. Since then, both the transfer and peer discovery mechanisms have improved, but only recently have we seen a real push to completely decentralized peer discovery to increase scalability and resilience.},
+  isbn = {978-1-4244-5066-4},
+  langid = {english}
+}
+
+@misc{tron_2021,
+  title = {The Hard {{DiSC}} of the World Computer},
+  author = {Tron, Viktor},
+  year = {2021},
+  month = feb,
+  journal = {Ethereum Swarm},
+  urldate = {2023-07-12},
+  abstract = {Swarm's decentralized storage model and its inception},
+  langid = {english}
+}
+
+@misc{swarm_team_2021,
+  title = {Storage and Communication Infrastructure for a Self-Sovereign Digital Society},
+  author = {{Swarm team}},
+  year = {2021},
+  urldate = {2023-07-13},
+  howpublished = {https://www.ethswarm.org/swarm-whitepaper.pdf}
+}
+
+@misc{swarmwiki_2019,
+  title = {{{IPFS}} \& {{SWARM}}},
+  author = {{Swarm wiki}},
+  year = {2019},
+  journal = {GitHub},
+  urldate = {2023-07-13},
+  abstract = {Swarm: Censorship resistant storage and communication infrastructure for a truly sovereign digital society - ethersphere/swarm},
+  howpublished = {https://github.com/ethersphere/swarm/wiki/IPFS-\&-SWARM},
+  langid = {english}
+}
+
+@article{chowdhury_2017,
+  title = {Performance {{Analysis}} of {{R}}/{{KADEMLIA}}, {{Pastry}} and {{Bamboo Using Recursive Routing}} in {{Mobile Networks}}},
+  author = {Chowdhury, Farida and Ferdous, Md. Sadek},
+  year = {2017},
+  month = sep,
+  journal = {International Journal of Computer Networks and Communications},
+  volume = {5},
+  pages = {41--54},
+  doi = {10.5121/ijcnc.2017.9504},
+  abstract = {We are experiencing a revolution in the wireless technology and mobile phone networks as they are becoming increasingly ubiquitous. On the other hand, there is another trend, gaining extreme popularity over the traditional wired Internet: Peer-to-Peer (P2P) networking. Specifically, Distributed Hash Table (DHT) based Structured P2P overlay networks are capable to facilitate information storage and retrieval among a potentially very large number of users without the use of central server components. Providing such P2P services in mobile networks will allow a user to harness the potential of P2P services while on the move. However, due to technical issues in mobile phone networks and limited resources available on the handsets, designing such a system is a challenging issue. While the research of P2P overlays in wired networks is plenty, there is a limited study on the suitability of different existing P2P overlays for mobile networks. This article investigates the performance and efficiency of a number of structured P2P overlays that use recursive approach for routing strategy: R/Kademlia, Pastry and Bamboo and finds their suitability for use on mobile networks. The simulation result shows that among the three overlays, Bamboo exhibits a marginally better performance in comparison to the others with a 98\% to 99\% routing efficiency and a lower bandwidth consumption in high churn environment. Hence, Bamboo protocol is a good choice to be used over Kademlia and Pastry in mobile networks.}
+}
+
+@inproceedings{heep_2010,
+  title = {R/{{Kademlia}}: {{Recursive}} and Topology-Aware Overlay Routing},
+  shorttitle = {R/{{Kademlia}}},
+  booktitle = {2010 {{Australasian Telecommunication Networks}} and {{Applications Conference}}},
+  author = {Heep, Bernhard},
+  year = {2010},
+  month = oct,
+  pages = {102--107},
+  publisher = {{IEEE}},
+  address = {{Auckland, New Zealand}},
+  doi = {10.1109/ATNAC.2010.5680244},
+  urldate = {2023-07-13},
+  abstract = {Structured peer-to-peer overlays offer a basis for a broad range of applications, such as distributed storage, application layer multicast, and mobility support. This paper introduces R/Kademlia, a low bandwidth and low latency variant of the popular overlay protocol Kademlia. R/Kademlia utilizes recursive overlay routing instead of iterative lookups of keys, thus a higher routing performance can be achieved in network scenarios with churn rates that are characteristic for public KAD networks. Both Proximity Routing and Proximity Neighbor Selection are effectively applicable, which leads to a further decrease of routing latencies. Similar to the original protocol, nodes in a R/Kademlia network meet other nodes during user-triggered routing procedures, hence no expensive periodic tasks are needed. For the simulative evaluation of R/Kademlia, the Performance vs. Cost framework (PVC) and the overlay framework OverSim were employed, where both routing modes\textemdash iterative and recursive\textemdash were simulated and compared in different network scenarios with varying churn rates.},
+  isbn = {978-1-4244-8173-6},
+  langid = {english}
+}
+
+@article{tron_2018,
+  title = {Swarm: A Decentralised Peer-to-Peer Network for Messaging and Storage},
+  author = {Tr{\'o}n, Viktor and Fischer, Aron and Nagy, Daniel A},
+  year = {2018},
+  langid = {english}
+}
+
+@article{wikipedia_2023,
+  title = {Merkle Tree},
+  author = {{Wikipedia}},
+  year = {2023},
+  month = jul,
+  journal = {Wikipedia},
+  urldate = {2023-07-15},
+  abstract = {In cryptography and computer science, a hash tree or Merkle tree is a tree in which every "leaf" (node) is labelled with the cryptographic hash of a data block, and every node that is not a leaf (called a branch, inner node, or inode) is labelled with the cryptographic hash of the labels of its child nodes. A hash tree allows efficient and secure verification of the contents of a large data structure. A hash tree is a generalization of a hash list and a hash chain. Demonstrating that a leaf node is a part of a given binary hash tree requires computing a number of hashes proportional to the logarithm of the number of leaf nodes in the tree. Conversely, in a hash list, the number is proportional to the number of leaf nodes itself. A Merkle tree is therefore an efficient example of a cryptographic commitment scheme, in which the root of the tree is seen as a commitment and leaf nodes may be revealed and proven to be part of the original commitment. The concept of a hash tree is named after Ralph Merkle, who patented it in 1979.},
+  copyright = {Creative Commons Attribution-ShareAlike License},
+  langid = {english},
+  annotation = {Page Version ID: 1163481448}
+}
