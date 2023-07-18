@@ -64,7 +64,50 @@ In addition to transactions, each block has an equivalent limit that bounds the 
 Utilizing a contract’s storage also results in a gas fee. In particular, the cost of writing data on storage is proportional to the data’s size and as depicted in table \ref{table:operations_cost}, especially high, as a means to keep the distributed database as small as possible. Consequently, storage space within the Ethereum network is a valuable resource and it should be used sparingly to store what is required for the SC's proper operation. Obviously, this limits drastically the amount of data an application can store on Ethereum.
 
 \subsection{Refunds}\label{sec:gas}
+As previously discussed, all operations that are executed during a transaction incur gas costs in order to prevent the abuse of the network's resources. Particularly operations that lead to an increase in the state of the Blockchain, which corresponds directly to a larger state database on all nodes, inflicts a heavy load on the network. In this respect, the Ethereum protocol has employed a gas refund mechanism to minimize pointless occupation of storage space.
 
+\begin{table}[htbp]
+\caption{Gas costs and refunds for operations that affect the sate's size. The table includes changes up to Muir Glacier fork \citep{wood_2014}.}
+\label{table:state_operations_cost}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lrl@{}}
+\toprule
+ \textbf{Name} & \textbf{Value} & \textbf{Description} \\ \midrule
+ $G_{\mathrm{sset}}$ & 20000 & Paid for an {\small SSTORE} operation when the storage value is set to non-zero \\
+ && from zero. \\
+ $G_{\mathrm{sreset}}$ & 5000 & Paid for an {\small SSTORE} operation when the storage value's zeroness remains \\
+ && unchanged or is set to zero. \\
+ $G_{\mathrm{create}}$ & 32000 & Paid for creating a new account with associated code. \\
+ $G_{\mathrm{codedeposit}}$ & 200 & Paid per byte for a {\small CREATE} operation to succeed in placing code into state. \\
+ $G_\text{txcreate}$ & 32000 & Paid by all contract-creating transactions.\\
+ $G_{\mathrm{selfdestruct}}$ & 5000 & Amount of gas to pay for a {\small SELFDESTRUCT} operation. \\
+ $R_{\mathrm{selfdestruct}}$ & 24000 & Refund given (added into refund counter) for self-destructing an account. \\
+ $R_{\mathrm{sclear}}$ & 15000 & Refund given (added into refund counter) when the storage value is set to zero from\\
+&&non-zero.\\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+There are two actions that a user can perform to earn a refund: an \textsc{sstore} operation that changes a storage slot's value from non-zero to zero or a \textsc{selfdestruct} operation on a contract. The latter causes the specified contract to be destroyed and removes its code from the blockchain. Both actions, free up space, reducing the volume of data that each node of the network must store. Consequently, they are rewarded with a gas refund (see table \ref{table:state_operations_cost}). The amount with which the sender will be compensated is calculated after the execution of the transaction.
+
+Every transaction is associated with a refund balance $A_{\mathrm{r}}$ and a set of contract accounts, $A_{\mathrm{s}}$, that will be \emph{``self-destructed''} when the transaction is completed. During the execution of a transaction, whenever an \textsc{sstore} operation that clears a storage entry is executed, the refund balance in incremented by $R_{\mathrm{sclear}}$. Similarly, when a \textsc{selfdestruct} operation occurs, the corresponding contract account is added to the set $A_{\mathrm{s}}$.
+
+After the transaction is processed, the balance $A_{\mathrm{r}}$, which represents the accumulated gas refund so far, is incremented by $R_{\mathrm{sclear}}$ for every contract account in the set $A_{\mathrm{s}}$ that was destroyed.
+
+\begin{equation}
+	A'_{\mathrm{r}} \equiv A_{\mathrm{r}} + \sum_{i \in A_{\mathbf{s}}} R_{\mathrm{selfdestruct}}
+\end{equation}
+
+Then, as presented in the underlying formula, the accumulated refund $A_{\mathrm{r}}'$ is added to $g'$ with the latter having a maximum value equal to half of the gas used so far. Here, the term Tg refers to the gasLimit of the transaction and $g'$ refers to the remaining gas after the execution of all the operations that have been carried out during the transaction.
+
+\begin{equation}
+g^* \equiv g' + \min \left\{ \Big\lfloor \dfrac{T_{\mathrm{g}} - g'}{2} \Big\rfloor, A'_{\mathrm{r}} \right\}
+\end{equation}
+
+Consequently, $g^*$ is the final amount with which the sender will be compensated once the transaction is completed. Simply put, the sender will get any unused gas plus the calculated refund. Of course, as explained in section \ref{sec:gas} the sender won't be compensated with gas but with the corresponding Ether amount based on the gas price they set for this transaction.
+
+Finally we ought to mention that refunds affect the reward granted to block authors. When a refund is issued, the refunded gas is added to the gas that were not used during the transaction and is returned to the sender. This effectively reduces the overall gas considered "consumed", subsequently reducing the miner's reward. Thus, limiting the potential refund to half the consumed gas ensures that block authors are compensated for processing and validating blocks 
 
 \subsection{Forks \& EIPs}\label{sec:gas}
 In blockchain technology, a \textit{fork} refers to a split in the chain of blocks. For instance, this can happen when two different miners produce a valid block at nearly the same time. This ambiguity is resolved when subsequently added blocks render one as the longest chain. However, forks can occur due to intentional changes in the rules of the blockchain protocol. 
@@ -93,9 +136,9 @@ Below we discuss some of the EIPs that were implemented in view of the Berlin an
 
 \paragraph{EIP-2929}\label{par:eip_2929_cold_warm}
 
-EIP-2929, included in Berlin fork, proposes an increase in gas costs for certain opcodes and also reforms  to prevent potential denial-of-service (DoS) attacks \citep{buterin_eip_2929}. Additionally, it outlines the adjustments that need to be made to the SSTORE and SELFDESTRUCT metering mechanisms in order to avoid unfair rates due to the SLOAD operations entailed in such operations.
+EIP-2929, included in Berlin fork, proposes an increase in gas costs for certain opcodes and also reforms  to prevent potential denial-of-service (DoS) attacks \citep{buterin_eip_2929}. Additionally, it outlines the adjustments that need to be made to the \textsc{sstore} and \textsc{selfdestruct} metering mechanisms in order to avoid unfair rates due to the \textsc{sload} operations entailed in such operations.
 
-Since our research revolves mainly around data management, we do not elaborate on how this EIP affect the *CALL opcode family, EXT* opcode family and the SELFDESTRUCT metering mechanism. Thus, below we present only the reformed SSTORE metering mechanism. As reference, the corresponding Geth’s implementation was used  \citep{ethereum_2022}.
+Since our research revolves mainly around data management, we do not elaborate on how this EIP affect the \textsc{*call} opcode family, \textsc{ext*} opcode family and the \textsc{selfdestruct} metering mechanism. Thus, below we present only the reformed \textsc{sstore} metering mechanism. As reference, the corresponding Geth’s implementation was used  \citep{ethereum_2022}.
 
 \vspace{0.2cm}
 \noindent
@@ -160,7 +203,7 @@ Considering table \ref{table:operations_cost}, a more convenient representation 
 $g_0 \equiv 21000 + 16 * \textsc{non\_zero\_bytes} + 4 * \textsc{zero\_bytes} + 1900 * \textsc{storage\_key\_count } + 2400 * \textsc{address\_count}$
 \end{flushleft}
 
-All the accounts and storage slots specified in the AL are considered “warmed up” and consequently SLOAD, *CALL, BALANCE, EXT* operations on them are charged as if they were already accessed, in accordance with EIP-2929. Table~\ref{table:access_list} is a simplified representation of the access-cost when an AL is or is not utilized.
+All the accounts and storage slots specified in the AL are considered “warmed up” and consequently \textsc{sload}, \textsc{*call}, \textsc{balance}, \textsc{ext*} operations on them are charged as if they were already accessed, in accordance with EIP-2929. Table~\ref{table:access_list} is a simplified representation of the access-cost when an AL is or is not utilized.
 
 \begin{table}[htbp]
 \caption{Impact of the Optional Access List}
