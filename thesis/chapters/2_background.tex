@@ -79,8 +79,9 @@ In the context of Ethereum, the changes introduced by the forks are typically de
 \label{fig: eip_stages}
 \end{figure}
 
-EIPs are part of an open-source collaboration process. They offer a formal way for individuals in the Ethereum community to suggest changes and upgrades to the network. Each EIP must go through a process of discussion and approval by the Ethereum community. The process is illustrated in fig. \ref{fig:eip_stages} and involves initial drafting, reviewing, modifications, and eventually, if there is sufficient consensus among the community, the EIP is finalized and the changes can be implemented in the Ethereum protocol. 
+EIPs are part of an open-source collaboration process. They offer a formal way for individuals in the Ethereum community to suggest changes and upgrades to the network. Each EIP must go through a process of discussion and approval by the Ethereum community. The process is illustrated in fig. \ref{fig: eip_stages} and involves initial drafting, reviewing, modifications, and eventually, if there is sufficient consensus among the community, the EIP is finalized and the changes can be implemented in the Ethereum protocol. 
 
+\add{Den einai kakh idea na mpoune sto keimeno}
 % There are several types of EIPs, including:
 % Standard Track EIPs - these relate to changes to the network protocol itself, such as changes to block or transaction validity rules, proposed application standards/conventions, and changes/upgrades to networking protocols.
 % Meta EIPs - these propose design issues, general guidelines or information to the Ethereum community, or describe a new feature for Ethereum or its processes or environment.
@@ -137,7 +138,7 @@ Since our research revolves mainly around data management, we do not elaborate o
 EIP-2930  \citep{buterin_eip_2930} adds a new transaction type and introduces the notion of an optional AL, a list of entries with each entry being a tuple of an account address and a list of storage keys that the transaction plans to access. This essentially enables a user to\emph{``warm-up''} the accounts and storage slots they plan to access, at a discounted cost. 
 
 The cost for warming up each account address is $G_{\mathrm{accesslistaddress}} = 2400$ and 
-$G_{\mathrm{accessliststorage}} = 1900$ for each storage key, and is paid upfront. As a result, the calculation of the intrinsic gas \textit{g0} changes to:
+$G_{\mathrm{accessliststorage}} = 1900$ for each storage key, and is paid upfront. As a result, the calculation of the intrinsic gas \textit{g0} changes to\comment{:}{an mporeis na mou to exigiseis}
 
 \begin{small}
 \setlength{\mathindent}{0pt}
@@ -153,7 +154,7 @@ g_0 \equiv {} & \sum_{i \in T_{\mathbf{i}}, T_{\mathbf{d}}} \begin{cases} {G_{\m
 \end{align}
 \end{small}
 
-% TODO: is this necessary?
+% TODO: is this necessary? einai epexigimatiko
 Considering table \ref{table:operations_cost}, a more convenient representation of the intrinsic gas that must be paid for a contract call is:
 \begin{flushleft}
 \centering
@@ -185,11 +186,27 @@ All the accounts and storage slots specified in the AL are considered “warmed 
     
 The main objective of this EIP is to mitigate risks introduced by the refined gas metering mechanism described in paragraph \ref{par:eip_2929_cold_warm}. For instance, an external function call that is allowed to consume a specific amount of gas (see fig. ) might be rendered un-callable due to increased gas costs we discussed previously. By warming up these addresses, such scenarios can be dealt with. 
 
-\begin{figure}[htbp]
-\centerline{\includegraphics[width=\textwidth]{figs/solidity_external_function.png}}
-\caption{Example of an external function call with specified gas.}
-\label{fig: external_function_call}
-\end{figure}
+% \begin{figure}[htbp]
+% \centerline{\includegraphics[width=\textwidth]{figs/solidity_external_function.png}}
+% \caption{Example of an external function call with specified gas.}
+% \label{fig: external_function_call}
+% \end{figure}
+
+% change the language to solidity https://github.com/s-tikhomirov/solidity-latex-highlighting
+\begin{lstlisting}[language=C++, label={code: external_function_call}, abovecaptionskip=0pt, caption={Example of an external function call with specified gas.}, captionpos=b]
+    // SPDX-License-Identifier: GPL-3.0
+    pragma solidity >=0.6.2 <0.9.0;
+    
+    contract InfoFeed {
+        function info() public payable returns (uint ret) { return 42; }
+    }
+    
+    contract Consumer {
+        InfoFeed feed;
+        function setFeed(InfoFeed addr) public { feed = addr; }
+        function callFeed() public { feed.info{value: 10, gas: 800}(); }
+    }
+\end{lstlisting}
 
 % \paragraph{EIP-1559}\label{par:eip_1559_gas_limit}
 
