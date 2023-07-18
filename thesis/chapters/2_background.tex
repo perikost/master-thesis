@@ -1,6 +1,214 @@
 \chapter{Background \& Related Work}\label{chapter:background}
 
 \section{Ethereum}\label{sec:ethereum}
+Ethereum is considered to be a distributed transaction-based state machine  \citep{wood_2014}. There are two key components that enable Ethereum’s operation. The Ethereum Virtual Machine (EVM), which is a Turing-complete virtual machine with a simple stack-based architecture and the Ethereum blockchain, an append-only timestamped data structure where transactions and relevant information are stored. Each node that participates in the Ethereum network runs an instance of the EVM and holds a copy of the blockchain. State transitions are caused by the execution of transactions, which may result either in a transmission of value between accounts or an execution of EVM code associated with an account. Such code, known as SC, is essentially an immutable computer program that runs on top of the Ethereum protocol. Typically, SCs are written in high level programming languages, primarily in Solidity  \citep{solidity}, but must be compiled to a series of bytecode instructions in order to be executed by the EVM.
+
+Since Ethereum aims to provide the necessary infrastructure for all kinds of applications, having a persistent memory area for the needs of the applications, is crucial. Indeed, every SC owns an autonomous memory area called storage, where data can be saved.
+
+\subsection{Gas}\label{sec:gas}
+Every transaction that takes place on the Blockchain is stored and verified by all nodes of the network, burdening it. Therefore, to avoid unnecessary abuse of network resources, transactions are associated with a fee. In the case of Bitcoin, this is determined by the Miners, depending on the network load. In Ethereum, since beyond the mere transfer of cryptocurrencies, execution of code and data storage are supported, a different strategy has been adopted.
+
+A transaction in Ethereum, whether it's a simple transfer of Ether or a complex smart contract function call, involves the execution of operations. These operations are subject to a fee which is predetermined  \citep{wood_2014} and paid in gas, the fundamental cost unit in Ethereum. Basically, the more resources a particular operation consumes, the more gas it costs. Without a measure like gas, someone could deliberately spam the network with complex operations, causing it to slow down.
+
+\begin{table}[htbp]
+\caption{Gas costs for some basic operations up to Muir Glacier fork \citep{wood_2014}.}
+\label{table:operations_cost}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lrl@{}}
+\toprule
+ \textbf{Name} & \textbf{Value} & \textbf{Description} \\ \midrule
+ $G_{\mathrm{sset}}$ & 20000 & Paid for an {\small SSTORE} operation when the storage value is set to non-zero \\
+ && from zero. \\
+ $G_{\mathrm{sreset}}$ & 5000 & Paid for an {\small SSTORE} operation when the storage value's zeroness remains \\
+ && unchanged or is set to zero. \\
+ $G_{\mathrm{create}}$ & 32000 & Paid for creating a new account with associated code. \\
+ $G_{\mathrm{codedeposit}}$ & 200 & Paid per byte for a {\small CREATE} operation to succeed in placing code into state. \\
+%  $G_{\mathrm{newaccount}}$ & 25000 & Paid for a {\small CALL} or {\small SELFDESTRUCT} operation which creates an account. \\
+%  $G_{\mathrm{memory}}$ & 3 & Paid for every additional word when expanding memory. \\
+ $G_\text{txcreate}$ & 32000 & Paid by all contract-creating transactions after the {\textit{Homestead} transition}.\\
+ $G_{\mathrm{txdatazero}}$ & 4 & Paid for every zero byte of data or code for a transaction. \\
+ $G_{\mathrm{txdatanonzero}}$ & 16 & Paid for every non-zero byte of data or code for a transaction. \\
+ $G_{\mathrm{transaction}}$ & 21000 & Paid for every transaction. \\
+ $G_{\mathrm{log}}$ & 375 & Partial payment for a {\small LOG} operation. \\
+ $G_{\mathrm{logdata}}$ & 8 & Paid for each byte in a {\small LOG} operation's data. \\
+ $G_{\mathrm{logtopic}}$ & 375 & Paid for each topic of a {\small LOG} operation. \\ \bottomrule
+\end{tabular}
+}
+\end{table}
+
+Gas cannot be used by users to pay for a transaction directly. In practice, prior to a transaction’s execution, a certain amount of gas, known as gasLimit, is purchased with Ether at a certain gasPrice. Both gasLimit and gasPrice are specified by the sender. After the transaction is completed, any unused gas are converted back to Ether, at the rate they were purchased and returned to the sender. The Ether corresponding to the gas consumed constitutes the fee of the transaction and is granted to the \hl{miner/validator} as a reward. 
+% TODO: add a footnote with this informing about EIP-1559. Also for intrinsic gas and intrinsic cost
+% (\hl{is taken into account while calculating the transaction's fee which is granted to..})
+
+In the context of a transaction, gasLimit indicates the amount of gas the sender is willing to spend. A transaction will fail if a) the gasLimit is lower than the intrinsic gas \textit{g0} (see fig. \ref{fig:intrinsic_cost}), b) the sender's balance cannot cover the intrinsic cost \(v0 = gasPrice * gasLimit + transferredEther\), or the gasLimit is not sufficient for the execution of the operations associated with it. In the first two cases, the transaction is considered invalid from the beginning and is not executed. In the last case, the transaction is executed until the available gas are exhausted. This burdens the network's resources, so the fee resulting from the consumed gas is compensated to the \hl{Miner/validator}. Note that any changes that have been made during the execution of a failed transaction are reversed. As is obvious, the correct determination of gasPrice and gasLimit values is necessary for the successful completion of transactions.
+
+\begin{figure}[h!]
+\begin{small}
+\setlength{\mathindent}{0pt}
+\begin{align}
+g_0 \equiv {} & \sum_{i \in T_{\mathbf{i}}, T_{\mathbf{d}}} \begin{cases} {G_{\mathrm{txdatazero}}} & \text{if} \quad i = 0 \\ {G_{\mathrm{txdatanonzero}}} & \text{otherwise} \end{cases}
+\nonumber {} & + \begin{cases} {G_{\mathrm{txcreate}}} & \text{if contract creation} \\ 0 & \text{otherwise} \end{cases}
+\nonumber {} & + {G_{\mathrm{transaction}}} \\
+\nonumber
+% \nonumber {} & + \sum_{j = 0}^{\lVert T_{\mathbf{A}} \rVert - 1} \big( G_{\mathrm{accesslistaddress}} + \lVert T_{\mathbf{A}}[j]_{\mathbf{s}} \rVert G_{\mathrm{accessliststorage}} \big)
+\end{align}
+\end{small}
+\caption{Intrinsic gas calculation up to Muir Glacier fork. $T_{\mathbf{i}},T_{\mathbf{d}}$ refer to the transaction's data and contract initialization code.}
+\label{fig:intrinsic_cost}
+\end{figure}
+
+The existence of this limit arises from a problem known in computer science as the Halting Problem \citep{burkholder_1987}. A brief description of it is: given an arbitrary program and an input, it is impossible to know in advance if the program will complete or will "run" indefinitely. Imposing a limit on the number of operations that can be executed during a transaction, prevents the EVM from getting stuck in intentional (by malicious users) or unintentional infinite loops.
+
+In addition to transactions, each block has an equivalent limit that bounds the total gas that can be consumed by the transactions included in it. This in turn limits the number of transactions that can be included in a block, thus regulating the size of the blocks.
+
+Utilizing a contract’s storage also results in a gas fee. In particular, the cost of writing data on storage is proportional to the data’s size and as depicted in table \ref{table:operations_cost}, especially high, as a means to keep the distributed database as small as possible. Consequently, storage space within the Ethereum network is a valuable resource and it should be used sparingly to store what is required for the SC's proper operation. Obviously, this limits drastically the amount of data an application can store on Ethereum.
+
+\subsection{Refunds}\label{sec:gas}
+
+
+\subsection{Forks \& EIPs}\label{sec:gas}
+In blockchain technology, a \textit{fork} refers to a split in the chain of blocks. For instance, this can happen when two different miners produce a valid block at nearly the same time. This ambiguity is resolved when subsequently added blocks render one as the longest chain. However, forks can occur due to intentional changes in the rules of the blockchain protocol. 
+
+The introduction of changes and new rules lead to a split in the network. If the changes are backwards compatible, meaning that new blocks can be produced based on either the new rules or the old ones, the fork is called \textit{soft} and nodes that did not upgrade their software can still participate in the network and process transactions \citep{etherscaninformationcenter_2022}. On the other hand, a \textit{hard} fork happens when major changes that break backward compatibility are implemented. In that case, all nodes must adopt the upgrades and abide by the new rules, else a permanent network split could occur. A notable example of this in Ethereum's history was the DAO fork \citep{ethereumfoundation_2023} which was enforced in response to the DAO attack \citep{vujicic_2018} and lead the creation of Ethereum Classic, as a part of the network decided to continue following the old rules.
+
+In the context of Ethereum, the changes introduced by the forks are typically derived from Ethereum Improvement Proposals (EIPs), which suggest improvements to the underlying protocol. In short, they are technical documents that propose enhancements or introduce new features and processes. 
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=\textwidth]{figs/eip_stages.jpg}}
+\caption{EIP standardization process \citep{ethereumfoundation_2023b}.}
+\label{fig: eip_stages}
+\end{figure}
+
+EIPs are part of an open-source collaboration process. They offer a formal way for individuals in the Ethereum community to suggest changes and upgrades to the network. Each EIP must go through a process of discussion and approval by the Ethereum community. The process is illustrated in fig. \ref{fig:eip_stages} and involves initial drafting, reviewing, modifications, and eventually, if there is sufficient consensus among the community, the EIP is finalized and the changes can be implemented in the Ethereum protocol. 
+
+% There are several types of EIPs, including:
+% Standard Track EIPs - these relate to changes to the network protocol itself, such as changes to block or transaction validity rules, proposed application standards/conventions, and changes/upgrades to networking protocols.
+% Meta EIPs - these propose design issues, general guidelines or information to the Ethereum community, or describe a new feature for Ethereum or its processes or environment.
+% Informational EIPs - these describe an Ethereum design issue, or provide general guidelines or information to the Ethereum community, but do not propose a new feature.
+% ERC (Ethereum Request for Comments) EIPs - these are application-level standards and conventions, including contract standards like the well-known ERC-20 and ERC-721, which provide rules for Ethereum token contracts.
+
+In Ethereum, every fork that takes place includes a set of EIPs that each Ethereum client must implement to remain in consensus with the rest of the network \citep{ethereumfoundation_2023a}. This requirement ensures that all client developers adhere to the same rules, thereby maintaining network integrity.
+
+Below we discuss some of the EIPs that were implemented in view of the Berlin and London forks.
+
+\paragraph{EIP-2929}\label{par:eip_2929_cold_warm}
+
+EIP-2929, included in Berlin fork, proposes an increase in gas costs for certain opcodes and also reforms  to prevent potential denial-of-service (DoS) attacks \citep{buterin_eip_2929}. Additionally, it outlines the adjustments that need to be made to the SSTORE and SELFDESTRUCT metering mechanisms in order to avoid unfair rates due to the SLOAD operations entailed in such operations.
+
+Since our research revolves mainly around data management, we do not elaborate on how this EIP affect the *CALL opcode family, EXT* opcode family and the SELFDESTRUCT metering mechanism. Thus, below we present only the reformed SSTORE metering mechanism. As reference, the corresponding Geth’s implementation was used  \citep{ethereum_2022}.
+
+\vspace{0.2cm}
+\noindent
+\textsc{sload} cost modification:
+   \begin{itemize}[topsep=0pt, itemsep=0pt]
+     \item  \textsc{warm\_sload}: charge 100 gas if slot has already been accessed in current execution context.
+     \item  \textsc{cold\_sload}: charge 2100 gas if slot has not been accessed in current execution context.
+   \end{itemize}
+   
+\vspace{0.2cm}
+\noindent
+ \textsc{sstore} cost modification:
+   \begin{itemize}[topsep=0pt, itemsep=0pt]
+     \item  Initialize a slot:
+     \begin{itemize}[topsep=0pt, itemsep=0pt]
+        \item If slot is not already accessed: charge \textsc{cold\_sload} + \textsc{sstore} = 2100 + 20000 = 22100
+        \item If slot is already accessed: charge \textsc{sstore} = 20000
+     \end{itemize}
+   \end{itemize}
+   
+   \begin{itemize}[topsep=0pt, itemsep=0pt]
+     \item  Update a slot: 
+     \begin{itemize}[topsep=0pt, itemsep=0pt]
+        \item If slot is not already accessed: charge \textsc{cold\_sload} + \textsc{(sstore\_reset - cold\_sload)} = 5000
+        \item If slot is already accessed: charge \textsc{(sstore\_reset - cold\_sload)} = 5000 – 2100 = 2900
+     \end{itemize}
+   \end{itemize}
+   
+   \begin{itemize}[topsep=0pt, itemsep=0pt]
+     \item  Overwriting a slot with the same value (no-op):
+     \begin{itemize}[topsep=0pt, itemsep=0pt]
+        \item If slot is not already accessed: charge \textsc{(cold\_sload + warm\_sload)} = 2100 + 100 = 2200
+        \item If slot is already accessed: charge \textsc{warm\_sload} = 100 
+     \end{itemize}
+   \end{itemize}
+
+
+\paragraph{EIP-2930}\label{par:eip_2930_access_list}
+EIP-2930  \citep{buterin_eip_2930} adds a new transaction type and introduces the notion of an optional AL, a list of entries with each entry being a tuple of an account address and a list of storage keys that the transaction plans to access. This essentially enables a user to\emph{``warm-up''} the accounts and storage slots they plan to access, at a discounted cost. 
+
+The cost for warming up each account address is $G_{\mathrm{accesslistaddress}} = 2400$ and 
+$G_{\mathrm{accessliststorage}} = 1900$ for each storage key, and is paid upfront. As a result, the calculation of the intrinsic gas \textit{g0} changes to:
+
+\begin{small}
+\setlength{\mathindent}{0pt}
+\begin{align}
+g_0 \equiv {} & \sum_{i \in T_{\mathbf{i}}, T_{\mathbf{d}}} \begin{cases} {G_{\mathrm{txdatazero}}} & \text{if} \quad i = 0 \\ {G_{\mathrm{txdatanonzero}}} & \text{otherwise} \end{cases}
+\nonumber {} & + \begin{cases} {G_{\mathrm{txcreate}}} & \text{if contract creation} \\ 0 & \text{otherwise} \end{cases}
+\nonumber {} & + {G_{\mathrm{transaction}}} 
+\nonumber
+\end{align}
+\begin{align}
+& + \sum_{j = 0}^{\lVert T_{\mathbf{A}} \rVert - 1} \big( G_{\mathrm{accesslistaddress}} + \lVert T_{\mathbf{A}}[j]_{\mathbf{s}} \rVert G_{\mathrm{accessliststorage}} \big)
+\intertext{Where $T_{\mathbf{i}},T_{\mathbf{d}}$ refer to the transaction's associated data and initialization EVM-code and $T_{\mathbf{d}}$ to the access list.} \nonumber
+\end{align}
+\end{small}
+
+% TODO: is this necessary?
+Considering table \ref{table:operations_cost}, a more convenient representation of the intrinsic gas that must be paid for a contract call is:
+\begin{flushleft}
+\centering
+$g_0 \equiv 21000 + 16 * \textsc{non\_zero\_bytes} + 4 * \textsc{zero\_bytes} + 1900 * \textsc{storage\_key\_count } + 2400 * \textsc{address\_count}$
+\end{flushleft}
+
+All the accounts and storage slots specified in the AL are considered “warmed up” and consequently SLOAD, *CALL, BALANCE, EXT* operations on them are charged as if they were already accessed, in accordance with EIP-2929. Table~\ref{table:access_list} is a simplified representation of the access-cost when an AL is or is not utilized.
+
+\begin{table}[htbp]
+\caption{Impact of the Optional Access List}
+\label{table:access_list}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lll@{}}
+\toprule
+ & \textbf{No access list} & \textbf{Access list}  \\ \midrule
+\textbf{Account} & \begin{tabular}[c]{@{}l@{}}2600 for first access + \\ 100 for each subsequent access\end{tabular} & \begin{tabular}[c]{@{}l@{}}2400 to be included in the AL + \\ 100 for each access\end{tabular} \\
+\textbf{SLOAD} & \begin{tabular}[c]{@{}l@{}}2100 for first access + \\ 100 for each subsequent access\end{tabular} & \begin{tabular}[c]{@{}l@{}}1900 to be included in the AL + \\ 100 for each access\end{tabular}
+\\
+\textbf{SSTORE} & \begin{tabular}[c]{@{}l@{}}22100 for each initialization\end{tabular} & \begin{tabular}[c]{@{}l@{}}1900 to be included in the AL + \\ 20000 for each initialization\end{tabular}
+\\
+\textbf{SSTORE} & \begin{tabular}[c]{@{}l@{}}5000 for each update\end{tabular} & \begin{tabular}[c]{@{}l@{}}1900 to be included in the AL + \\ 2900 for each update\end{tabular}
+\\
+\textbf{SSTORE} & \begin{tabular}[c]{@{}l@{}}2200 for each each update (same value)\end{tabular} & \begin{tabular}[c]{@{}l@{}}1900 to be included in the AL + \\ 100 for each update (same value)\end{tabular}
+\\* \bottomrule
+
+\end{tabular}%
+}
+\end{table}
+    
+The main objective of this EIP is to mitigate risks introduced by the refined gas metering mechanism described in paragraph \ref{par:eip_2929_cold_warm}. For instance, an external function call that is allowed to consume a specific amount of gas (see fig. ) might be rendered un-callable due to increased gas costs we discussed previously. By warming up these addresses, such scenarios can be dealt with. 
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=\textwidth]{figs/solidity_external_function.png}}
+\caption{Example of an external function call with specified gas.}
+\label{fig: external_function_call}
+\end{figure}
+
+% \paragraph{EIP-1559}\label{par:eip_1559_gas_limit}
+
+\paragraph{EIP-3529}\label{par:eip_3529_refund}
+This EIP \citep{buterin_eip_3529} was a part of the London fork and introduced the following changes to the Ethereum gas refund mechanism:
+
+\begin{itemize}
+  \item Removal of gas refunds for the \textsc{selfdestruct} operation
+  \item Reduction of gas refunds for clearing a storage slot from 15000 gas to \\ \textsc{sstore\_reset + access\_list\_storage\_key = 4800} gas.
+  \item Reduction of the maximum refund that the sender is eligible to get, from half to a fifth of the total gas used.
+\end{itemize}
+
+Gas refunds were initially introduced to incentivize developers to clear storage slots and delete contracts that are no longer required in order to lower the blokcain's size. Despite this motivation, the practice has not been widely adopted and the harmful consequences seem to outweigh the benefits \citep{buterin_eip_3529}.
+
+Firstly, refunds gave rise to exploitations such as the GasToken \citep{gastokenproject_2018}. The idea is that users can save on transaction fees by reserving storage slots with data or creating contracts when gas prices are low and freeing slots or deleting the contracts when gas prices are high in order to benefit from the refund. Obviously, this results in needless increase of the blockchain's state size. Secondly, since gas refunds allow for more gas to be used within the same block, they have affected block size variance.
+
+The changes proposed in the described EIP do not fully negate the concept of refunds, but they ensure that the total refundable amount is restricted to a level such that current exploits are not viable.
+
+The revised refund mechanism limits the overall refund amount
 \section{Distributed File Systems}\label{sec:dfs}
 In peer-to-peer distributed file systems, participating nodes share their resources to store and access all kinds of content. Nowadays, IPFS and Swarm are two of the most promising distributed file systems. Both have implemented, evolved, and connected widely researched techniques found in the domain of distributed systems. They aim to be platforms where users can trust the content they receive, without trusting the peers that provide it.
 
@@ -53,7 +261,7 @@ $\textsc <cidv1> ::= <multibase><multicodec-version><multicodec-content-type><mu
 
 while CID v0 contains only the \(\scriptstyle <multihash>\), which is always a SHA-256 multihash \citep{multiformat}, i.e., a 34-byte hex array with the leading bytes [0x12, 0x20], used to denote the hash function and the hash digest’s size, followed by the hash digest. The rest are implicitly assumed to be (base58btc - cidv0 - dag-pb).
 
-The leading three parts of the CID V1, namely, \(\scriptstyle <multibase>\), \(\scriptstyle <multicodec-version>\), and \(\scriptstyle <multicodec-content-type>\), denote the base in which the CID was encoded, its version, and the type of data it refers to, respectively. Applying base encoding to a CID aims to minimize its overall length. The Multihash represents the hash function that is applied on the binary data along with size of the resulting hash digest. It enables support for multiple hash functions, thus providing flexibility, future-proofing, interoperability and security. % TODO: maybe add citation
+The leading three parts of the CID V1, namely, \(\scriptstyle <multibase>\), \(\scriptstyle <multicodec-version>\), and \(\scriptstyle <multicodec-content-type>\), denote the base in which the CID was encoded, its version, and the type of data it refers to, respectively. Applying base encoding to a CID aims to minimize its overall length. The \(\scriptstyle <multihash>\) represents the hash function that is applied on the binary data along with size of the resulting hash digest. It enables support for multiple hash functions, thus providing flexibility, future-proofing, interoperability and security. % TODO: maybe add citation
 
 \begin{figure}[htbp]
     \centerline{\includegraphics[width=\textwidth]{figs/deduplication.png}}
@@ -102,10 +310,12 @@ In order to ensure that nodes are motivated to store and share the data for whic
 Chunks are the basic storage units in Swarm and default to a size of 4kB. Currently two types of chunks are supported: content-addressed chunks and single-owner chunks \citep{swarm_team_2021}. We focus on the former.
 
 \begin{figure}[htbp]
-    \centerline{\includegraphics[width=\textwidth]{figs/bmt_hash.png}}
-    \caption{Hash of chunk in swarm. \citep{daniel_2022}}
+    \centering
+    \resizebox{1\textwidth}{!}{
+    \input{figs/bmthash.tex}}
+    \caption{Hash of chunk in swarm. \citep{tron_2020}}
     \label{fig:bmt}
-\end{figure}
+ \end{figure}
 
 Content-addressed chunks obtain their addresses using the Binary Merkle Tree (BMT) hash function. Basically, as demonstrated in fig. \ref{fig:bmt}, the chunk if needed is zero padded to 4kB and is split in 32 byte segments which are then hashed in pairs using the Keccak256 hash function to build up a Binary Merkle Tree. Finally, the chunk's address is calculated by hashing the Merkle root of the tree with the length of the data (span). Such an approach may impose an overhead due to its increased complexity, compared to applying a hash function directly on the whole chunk, but allows for compact inclusion proofs with a 32-byte resolution. An inclusion proof verifies that a leaf node is a part of a given Merkle tree \citep{wikipedia_2023} and is used as evidence that a storage node possess a chunk.
 
@@ -145,7 +355,7 @@ Fig. \ref{fig:content_discovery} illustrates the process of content discovery an
 \paragraph{Forwarding \& Backwarding Kademlia}\label{par:forwarding_kademlia}
 Most peer-to-peer networks use implementations of the Kademlia protocol that are based on iterative routing for data lookup. Such an implementation is employed by IPFS and is briefly described in paragraph \ref{par:retrieving_ipfs}. However, there are variants of the Kademlia in the literature, for instance R/Kademlia, Pastry and Bamboo \citep{chowdhury_2017},  which use recursive routing to achieve higher performance, reduce latency and bandwith consumption \citep{heep_2010}.
 
-Swarm utilizes a recursive routing protocol which is termed as \textit{forwarding} Kademlia and was \hl{introduced/outlined/described in/ by Tron} \citep{tron_2018}. In this approach, \hl{instead of receiving references back to closer nodes}, the initial request by a node is forwarded by its peers to nodes closer to the data's identifier. Particularly, each node passes the request to a direct peer, i.e. a peer with who they maintain an active connection, that is at least one step closer to the destination in terms of PO. This process continues until the closest node is found.
+Swarm utilizes a recursive routing protocol which is termed as \textit{forwarding} Kademlia and was outlined by \cite{tron_2018}. In this approach, \hl{instead of receiving references back to closer nodes}, the initial request by a node is forwarded by its peers to nodes closer to the data's identifier. Particularly, each node passes the request to a direct peer, i.e. a peer with who they maintain an active connection, that is at least one step closer to the destination in terms of PO. This process continues until the closest node is found.
 
 The DISC (see paragraph \ref{par:disc}) model suggests that content is to be found with nodes closer to its address. In the described routing approach, when a retrieval request reaches its destination (storage node), the response (requested data) is routed back along the same path; the same intermediate nodes pass the delivery back towards the original requestor. This routing method, \hl{for obvious reasons}, is called \textit{backwarding} Kademlia.
 
