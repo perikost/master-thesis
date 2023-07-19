@@ -228,11 +228,21 @@ All the accounts and storage slots specified in the AL are considered “warmed 
     
 The main objective of this EIP is to mitigate risks introduced by the refined gas metering mechanism described in paragraph \ref{par:eip_2929_cold_warm}. For instance, an external function call that is allowed to consume a specific amount of gas (see fig. ) might be rendered un-callable due to increased gas costs we discussed previously. By warming up these addresses, such scenarios can be dealt with. 
 
-\begin{figure}[htbp]
-\centerline{\includegraphics[width=\textwidth]{figs/solidity_external_function.png}}
-\caption{Example of an external function call with specified gas.}
-\label{fig: external_function_call}
-\end{figure}
+% Solidity Latex https://github.com/s-tikhomirov/solidity-latex-highlighting
+\begin{lstlisting}[language=Solidity, label={code: external_function_call}, abovecaptionskip=0pt, caption={Example of an external function call with specified gas.}, captionpos=b]
+    // SPDX-License-Identifier: GPL-3.0
+    pragma solidity >=0.6.2 <0.9.0;
+    
+    contract InfoFeed {
+        function info() public payable returns (uint ret) { return 42; }
+    }
+    
+    contract Consumer {
+        InfoFeed feed;
+        function setFeed(InfoFeed addr) public { feed = addr; }
+        function callFeed() public { feed.info{value: 10, gas: 800}(); }
+    }
+\end{lstlisting}
 
 % \paragraph{EIP-1559}\label{par:eip_1559_gas_limit}
 
