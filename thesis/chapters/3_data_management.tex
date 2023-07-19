@@ -74,4 +74,25 @@ When it comes to retrieving a specific log, each block’s BF needs to be inspec
 To sum up, using BFs is much more efficient than a conventional search, but be that as it may, it is still time consuming because false positives are common and lead to additional retrievals to check if the log is the desired one. As expected, our findings (Section \ref{subsec:retrieve}) confirm that limiting the block filtering range can substantially reduce the retrieval latency.
 
 \section{Hybrid Schemes}\label{sec:}
-% the image from the presentation with the data being uploaded to IPFS and swarm and the hashes being recorded to ethereum. Explaining timestamping. Possibly CID length from the paper. 
+The Ethereum blockchain, while effective for executing code and processing data in a decentralized manner, it is not optimized for storing large volumes of data due to high costs \hl{and low space}. Consequently, in scenarios where decentralized applications must handle a lot of data, a direct on-chain storage approach isn't viable.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=12cm]{figs/hybrid.png}}
+\caption{Hybrid architecture overview.}
+\label{fig: hybrid}
+\end{figure}
+
+Distributed file systems like IPFS and Swarm can be integrated with blockchain networks like Ethereum to overcome limitations related to data storage, providing a scalable and efficient solution for fully decentralized applications. With that being said, most blockchain-based applications with high storage requirements would need to consider an on-chain/off-chain hybrid architecture.
+
+Data storage in hybrid schemes follows a two-step approach as shown in fig. \ref{fig: hybrid}:
+\begin{enumerate}
+\item Data is stored in a distributed file system (IPFS or Swarm) and a unique identifier is generated for it.
+\item The unique identifier is stored in the Ethereum blockchain.
+\end{enumerate}
+
+% To summarize, coupling a blockchain with a distributed file system allows for decentralized and secure storage and retrieval of data.
+The immutable nature of the blockchain provides a tamper-proof way of storing the identifiers. Besides that, blockchain technology provides a built-in mechanism for timestamping (each block contains a timestamp). This can be leveraged to create provable timestamps for data stored off-chain. In conjunction with the characteristics of self-verification and authenticity that distributed file systems offer through content addressing, data integrity of such schemes is guaranteed.
+
+When it comes to storing the identifiers in Ethereum, any of the methods that we described in the previous paragraphs can be adopted. Storing them in SC storage is the most straightforward option. On the other hand, alternatives like the event-logs, the transaction payload or the unused function arguments are far less expensive. In addition, the retrieval latency of each approach must be considered as well. Both aspects are examined and discussed in detail in the next chapter, which will hopefully enable developers to make a more informed choice.
+
+For data retrieval, the process is simple. The DApp retrieves the identifier from the blockchain and then uses it to retrieve the actual data from the respective distributed file system.
