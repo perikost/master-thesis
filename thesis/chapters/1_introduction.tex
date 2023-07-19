@@ -1,9 +1,27 @@
 \chapter{Introduction}\label{chapter:introduction}
+
+\section{Introduction}\label{sec:intro}
+The Internet and World Wide Web are without a doubt two of the most significant technological achievements in human history. Since its inception, the World Wide Web has undergone a number of significant changes. It has evolved from a static network of HTML pages (Web 1.0) to an interactive ecosystem of web applications (Web 2.0), and now it's moving towards a more decentralized model (Web 3.0).
+
+At first, websites were primarily informative. With the help of HTML, a simplistic markup language invented by the father of the World Wide Web, Tim Berners-Lee, and a home server or a cheap or even free web hosting platform, anyone could write and run their own website. As more people got involved with the web the underlying tools evolved, enabling the design of interactive websites, known as web applications. This transition marked the beginning of Web 2.0. 
+
+In parallel, the concept of peer-to-peer networking evolved as well. Technology enthusiasts realized that by sharing their resources (bandwidth and storage capacity) they could provide the same kind of availability and throughput for their content as the huge centralized data centers of Web 2.0. Notable examples of this idea are file sharing protocols like Gnutella and BitTorent which are able to support vast networks with millions of nodes that cooperate to make content accessible. 
+
+In January 2009, an anonymous person or group, under the pseudonym Satoshi Nakamoto published a paper that proposed a fully decentralized electronic cash system, Bitcoin [4], which does not rely on a central authority for the issuance of currency or the execution of transactions. The underlying technology that supports such a system is called blockchain. A blockchain network is a peer-to-peer network of nodes that follow a consensus protocol to verify and record transactions in a distributed immutable digital ledger. This technology signaled the beginning of a new era, that of Web 3.0, where interactions between users are carried out without intermediaries, in decentralized manner.
+
+However, the true potential of the Blockchain technology was realized when Vitalik Butarin invented Ethereum in 2013. The Ethereum Blockchain is a protocol similar to Bitcoin, but its use is not limited to facilitating financial transactions. This stems from the fact that a Virtual Machine that supports a turing-complete programming language has been incorporated within its architecture. Therefore, developers can build decentralized applications that will "run" in a secure, fair and trustless setting, without relying on an intermediary. 
+
+Similar to traditional applications, decentralized applications consist of code and a set of data which, depending on the case, significantly varies in size. However, storing data in Ethereum is associated with a monetary cost. For a limited volume of data this cost is reasonable, otherwise it's prohibitive, thus limiting the use of Ethereum as a storage medium for applications. To address this weakness, part of the Ethereum team proceeded with the design of Swarm, a distributed storage system capable of hosting large data sets at a lower cost. Apart from Swarm, there are other distributed storage systems such as IPFS, Sia, Storj, and decentralized databases like BigChainDB and OrbitDB that can be coupled with Ethereum to facilitate fully decentralized applications. 
+
+Combining blockchain technology, particularly Ethereum, with other decentralized peer-to-peer storage solutions will significantly contribute to the process of \hl{redefining/transforming} the World Wide Web into what Tim Berners-Lee originally envisioned: a decentralized open platform with no single point of failure, where users have full control of their data. 
+
+\section{Motivation \& Contributions}\label{sec:}
 While the number of individuals that use blockchain systems is growing significantly, concerns about the performance and cost of using public blockchains like Ethereum \citep{buterin_2014} discourage widespread adoption. In particular, storing data in Ethereum is expensive. However, Decentralized Applications (DApps) running on top of the blockchain, usually manage some of their data on-chain. The narrow range of design patterns for fully Decentralized Applications \citep{wohrer_2021} and the lack of comprehensive research about on-chain data handling, hinders the development of efficient Smart Contracts (SCs) and leads to higher costs that are laid onto the users of DApps. Minimizing the use of SC storage in favor of more cost-efficient alternatives or using distributed file systems such as IPFS \citep{benet_2014} and Swarm \citep{tron_2020} alongside Ethereum, could ameliorate this problem.
 
 According to this information, we define our research question: how can data be efficiently managed in Ethereum DApps?
 In our attempt to answer this, we examine a wide range of storage options in Ethereum as well as a hybrid on-chain/off-chain architecture and make a comparative study to explore the advantages and disadvantages of each approach. 
 
+% TODO: propose the use of an alternative data store in Ethereum
 {\bf Main contributions.} In this work, we:
 \begin{itemize}[topsep=0pt, itemsep=0pt]
 \item{Propose the use of the alternative data stores in Ethereum.}
@@ -12,64 +30,17 @@ In our attempt to answer this, we examine a wide range of storage options in Eth
 \item{Evaluate hybrid approaches utilizing IPFS and Swarm.}
 \end{itemize}
 
-Preliminary results of this research have been presented in~\citep{kostamis_2021}.
-In the present work we broaden the analysis of the available on-chain data management methods and outline the impact that new Ethereum Improvement Proposals (EIPs) had on gas consumption. Specifically, we discuss the EIPs that were enforced after the Muir Glacier hard fork and introduced modifications related to the gas metering and refund mechanisms. Comments on the latter provide valuable insight on the cost of deleting data and serve to complement the discussion on data handling in SC storage.
-Furthermore, we improve the evaluation of the retrieval performance 
-of Ethereum by taking into account the fact that
-recently retrieved data is cached by the operating system. Regarding the event-logs, additional remarks on the role that Bloom filters (BF) have in the data retrieval process, are made.
-Finally, we enrich the discussion about the on-chain/off-chain
-hybrid scheme with context about the cost of storing
-the content identifiers in Ethereum.
+More specifically, we make a detailed (cost-wise) analysis regarding the cost of the available on-chain data management methods. Firstly, we evaluate the most straightforward approach, that is, storing data directly in SC storage. Since SC storage is not immutable like the corresponding data structures where transactions and receipts are recorded, we also consider the cost of updating and deleting contract data. 
 
+Then we exploit EVM’s logging functionality to store data in transaction receipts. Similarly, we examine the transaction's data field as an alternative data store and also propose an extension to this approach, which we term as \emph{``Unused Function Parameters''}. All these methods are evaluated in terms of gas consumption. By doing so, we are able to demonstrate that indeed there are other data structures within Ethereum’s architecture that can be used as a form of cheaper data stores.
 
+% All these methods are evaluated in terms of gas consumption and the associated implementation complexity is discussed. By doing so, we are able to demonstrate that indeed there are other data structures within Ethereum’s architecture that can be used as a form of cheaper data stores, but also inform the reader...
 
-The structure of this paper is as follows. In Section 2 we discuss the related work. In the next Section, we compare the available data handling practices for on-chain data and describe the main differences between IPFS and Swarm, from a theoretical point of view. In Section 4 we define the criteria of our experiments, outline the environment in which they were conducted and discuss our results both in terms of cost and performance. In the last Section, we gather our conclusions. 
+In order to provide an up-to-date \hl{overview/perspective} of the storage methods we examine, we monitored all upgrades of Ethereum that occurred in parallel to our study and re-executed our experiments whenever deemed necessary. As a result, we outline the impact that some Ethereum Improvement Proposals (EIPs) had on gas consumption. Specifically, we discuss the EIPs that were enforced after the Muir Glacier fork and introduced modifications related to the gas metering and refund mechanisms. Comments on the latter provide valuable insight on the cost of deleting data and complement the discussion on data handling in SC storage.
 
-\section{Background information on blockchain}\label{sec:}
-\section{Background information on decentralized applications (dApps)}\label{sec:}
-\section{Research question / motivation}\label{sec:}
-\section{Thesis organization}\label{sec:organization}
+Furthermore, we evaluate the retrieval performance of Ethereum for each of the aforementioned data stores. Aiming to be thorough, we also take into account the fact that recently retrieved data is cached by the operating system. Regarding the event-logs, additional remarks on the role that Bloom filters (BF) have in the data retrieval process, are made.
 
+The last contribution of this work is an assessment of on-chain/off-chain hybrid schemes. In this context, we examine the cost linked to storing (on-chain) identifiers of data hosted in IPFS or Swarm. Obviously, all of Ethereum's data stores can be used for this purpose. We present only the use of the SC storage and the event-logs, but one can use the discussion in section \ref{sec:evaluation_ethereum} as a guide and draw conclusions about the efficiency of the rest of the methods. In addition, we review the upload and download performances of IPFS and Swarm which must be considered in conjunction with the performance of Ethereum in order get an overall perspective of such a scheme. 
 
-
-% \indent write here
-
-
-% \begin{figure}[h]
-%     \begin{minipage}{0.5\textwidth}
-%         \includegraphics[width=0.9\linewidth, height=6cm]{./img/1_intro/random_figure.jpg}
-%     \end{minipage}
-%     \hfill
-%     \begin{minipage}{0.5\textwidth}
-%         \includegraphics[width=1\linewidth, height=6cm]{./img/1_intro/random_figure.jpg}
-%     \end{minipage}
-%     \caption{If you want two figures next to each other}
-%     \label{Figure:conceptually}
-% \end{figure}
-
-% or if you want just one 
-
-% \begin{figure}[h]
-%     \centering
-%     \includegraphics[width=0.5\linewidth, height=5cm]{./img/1_intro/random_figure.jpg}
-%     \caption{If you want just one }
-%     \label{Figure:just one }
-% \end{figure}
-
-% and you can reference it like this \ref{Figure:just one }
-
-% \begin{table}[!h]
-% \begin{center}
-% \begin{tabular}{llcr} 
-% \toprule
-% & \textbf{parameter} & \textbf{type 1 } & \textbf{type 2 }\\
-%  \midrule
-%  \si{k_{0}}  & something & \SI{2e-05}{cm s^{-1}} &\SI{1e-03}{cm s^{-1}}\\
-%   \si{h_{0}}  & other thing & \SI{-27.8}{cm} & \SI{-34.5}{cm}\\ 
-%   \si{\tau} & exponent & 2 & 3 \\
-
-% \bottomrule
-% \end{tabular}
-% \caption{This is how you make a table}
-% \end{center}
-% \end{table}
+\section{Thesis Structure}\label{sec:organization}
+% The structure of this paper is as follows. In Section 2 we discuss the related work. In the next Section, we compare the available data handling practices for on-chain data and describe the main differences between IPFS and Swarm, from a theoretical point of view. In Section 4 we define the criteria of our experiments, outline the environment in which they were conducted and discuss our results both in terms of cost and performance. In the last Section, we gather our conclusions. 
