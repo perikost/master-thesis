@@ -45,15 +45,23 @@ As a rule, all transactions, including any payload, are permanently stored in th
 \end{figure}
 
 \subsection{Storing Data in Unused Function Parameters}\label{subsection:}
-With this term we refer to input data that are passed as function parameters but are no further used within function’s body, as seen in Fig.~\ref{fig:un}. This process is slightly more expensive than the previous one, as it is mandatory for function arguments to be ABI encoded, resulting in a longer payload array. However, it provides better functionality since the underlying tools for encoding and decoding such data are already developed  \citep{web3}, allowing the use of complex data types.
+With this term we refer to input data that are passed as function parameters but are no further used within function’s body, as seen in Code~\ref{code:un}. This process is slightly more expensive than the previous one, as it is mandatory for function arguments to be ABI encoded, resulting in a longer payload array. However, it provides better functionality since the underlying tools for encoding and decoding such data are already developed  \citep{web3}, allowing the use of complex data types.
 
-\begin{figure}[htbp]
-\setlength{\fboxsep}{5pt}%
-\setlength{\fboxrule}{0.05pt}%
-\centerline{\fbox{\includegraphics[width=12cm]{figs/code.png}}}
-\caption{Basic example of the unused function parameters method.}
-\label{fig:un}
-\end{figure}
+% Solidity Latex https://github.com/s-tikhomirov/solidity-latex-highlighting
+\vspace{12pt}
+\begin{lstlisting}[language=Solidity, label={code:un}, abovecaptionskip=0pt, caption={Basic example of the unused function parameters method.}, captionpos=b]
+    function Unused(string calldata _data) {
+        emit logUnused(); 
+    }
+\end{lstlisting}
+
+% \begin{figure}[htbp]
+% \setlength{\fboxsep}{5pt}%
+% \setlength{\fboxrule}{0.05pt}%
+% \centerline{\fbox{\includegraphics[width=12cm]{figs/code.png}}}
+% \caption{Basic example of the unused function parameters method.}
+% \label{fig:un}
+% \end{figure}
 
 Moreover, this method includes a function call and therefore permits the execution of additional logic during the same transaction, as opposed to the aforementioned method. For instance, an event could be emitted inside the function, providing a way of future-tracking the respective transaction and retrieving its data, eliminating the need for storing the transaction hash externally.
 
@@ -65,7 +73,7 @@ A BF is represented by an array of m bits $\{b_1, b_2,…, b_m\}$ all initialize
 In Ethereum, every block includes a BF of 2048 bits. Each event emitted by the block’s transactions generates a log entry that sets at least three bits of the BF based on the contract’s address, and another three bits for every topic (if any), as shown in Fig.~\ref{fig: bloom}. The bits are determined by calculating the modulo 2048 of each of the first three pairs of bytes in the Keccak-256 hash of the input, where input is the contract’s address or a topic  \citep{wood_2014}.
 
 When it comes to retrieving a specific log, each block’s BF needs to be inspected. If any of the bits that correspond to the topics or the contract’s address is zero, then, the log indeed isn’t part of the block. If all corresponding bits are set, the logs of the block are loaded and inspected individually. In case of a false positive the next block needs to be inspected.
-To sum up, using BFs is much more efficient than a conventional search, but be that as it may, it is still time consuming because false positives are common and lead to additional retrievals to check if the log is the desired one. As expected, our findings (Section \ref{subsec:retrieve}) confirm that limiting the block filtering range can substantially reduce the retrieval latency.
+To sum up, using BFs is much more efficient than a conventional search, but be that as it may, it is still time consuming because false positives are common and lead to additional retrievals to check if the log is the desired one. \comment{As expected,}{sigoura na mpei edw? Epishs elegxe thn anafora sto section giati to allo den douleue} our findings (Section \ref{sec:evaluation_ethereum_retrieval}) confirm that limiting the block filtering range can substantially reduce the retrieval latency.
 
 \section{Hybrid Schemes}\label{sec:}
 The Ethereum blockchain, while effective for executing code and processing data in a decentralized manner, it is not optimized for storing large volumes of data due to high costs \hl{and low space}. Consequently, in scenarios where decentralized applications must handle a lot of data, a direct on-chain storage approach isn't viable.
@@ -76,7 +84,7 @@ The Ethereum blockchain, while effective for executing code and processing data 
 \label{fig: hybrid}
 \end{figure}
 
-Distributed file systems like IPFS and Swarm can be integrated with blockchain networks like Ethereum to overcome limitations related to data storage, providing a scalable and efficient solution for fully decentralized applications. With that being said, most blockchain-based applications with high storage requirements would need to consider an on-chain/off-chain hybrid architecture.
+Distributed file systems like IPFS and Swarm can be integrated with blockchain networks like Ethereum to overcome limitations related to data storage, providing a scalable and efficient solution for fully decentralized applications. \replace{With that being said,}{Considering this,} most blockchain-based applications with high storage requirements would need to consider an on-chain/off-chain hybrid architecture.
 
 Data storage in hybrid schemes follows a two-step approach as shown in fig. \ref{fig: hybrid}:
 \begin{enumerate}
@@ -87,6 +95,6 @@ Data storage in hybrid schemes follows a two-step approach as shown in fig. \ref
 % To summarize, coupling a blockchain with a distributed file system allows for decentralized and secure storage and retrieval of data.
 The immutable nature of the blockchain provides a tamper-proof way of storing the identifiers. Besides that, blockchain technology provides a built-in mechanism for timestamping (each block contains a timestamp). This can be leveraged to create provable timestamps for data stored off-chain. In conjunction with the characteristics of self-verification and authenticity that distributed file systems offer through content addressing, data integrity of such schemes is guaranteed.
 
-When it comes to storing the identifiers in Ethereum, any of the methods that we described in the previous paragraphs can be adopted. Storing them in SC storage is the most straightforward option. On the other hand, alternatives like the event-logs, the transaction payload or the unused function arguments are far less expensive. In addition, the retrieval latency of each approach must be considered as well. Both aspects are examined and discussed in detail in the next chapter, which will hopefully enable developers to make a more informed choice.
+\replace{When it comes to storing the}{Regarding the storage of} identifiers in Ethereum, any of the methods that we described in the previous paragraphs can be adopted. Storing them in SC storage is the most straightforward option. On the other hand, alternatives like the event-logs, the transaction payload or the unused function arguments are far less expensive. In addition, the retrieval latency of each approach must be considered as well. Both aspects are examined and discussed in detail in the next chapter, \replace{which will hopefully enable developers}{providing developers with the necessary information} to make a more informed choice.
 
 For data retrieval, the process is simple. The DApp retrieves the identifier from the blockchain and then uses it to retrieve the actual data from the respective distributed file system.
