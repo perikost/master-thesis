@@ -9,19 +9,19 @@ We conducted our experiments on a machine with i7-8700 CPU, 64GB RAM, 2TB SSD ru
 \subsection{Remote Experiments}\label{sec:}
 Grid5000...
 \section{Criteria}\label{sec:}
-For evaluating the sustainability of using Ethereum as a stand-alone data store, we emphasized on the associated gas cost. In this regard, we thoroughly examined the most common storage methods, the SC storage, and the event-logs. Considering these as reference points, we explored alternatives and cost-wise compared the resulting gas costs. In addition, the implementation complexity of each approach was considered. Our findings are summarized in Table~\ref{table:overall}. On the other hand, the respective costs of the hybrid schemes are presented in Table~\ref{tab:hash_cost}. Among others, the results confirm that the use of SC storage incurs costs that are orders of magnitude larger than the alternative data stores we examined.
+For evaluating the sustainability of using Ethereum as a stand-alone data store, we emphasized on the associated gas cost. In this regard, we thoroughly examined the \hl{most common storage methods}, the SC storage, and the event-logs. Considering these as reference points, we explored alternatives and cost-wise compared the resulting gas costs. In addition, the implementation complexity of each approach was considered. Our findings are summarized in Table~\ref{table:overall}. \hl{On the other hand, the respective costs of the hybrid schemes are presented} in Table~\ref{tab:hash_cost}. Among others, the results confirm that the use of SC storage incurs costs that are orders of magnitude larger than the alternative data stores we examined.
 
-Except for being monetarily viable, DApps need to perform adequately when it comes to retrieving data. That being said, we measured the retrieval time in all the above scenarios. For IPFS and Swarm, both upload and retrieval performances were taken into account, aiming to a better overall comparison.
-\section{Experiments - Storing Data in Ethereum}\label{sec:}
-\subsection{SC Storage}\label{subsection:}
+Except for being monetarily viable, DApps need to perform adequately when it comes to retrieving data. That being said, we measured the retrieval time in all the above scenarios. \hl{For IPFS and Swarm, both upload and retrieval performances were taken into account, aiming to a better overall comparison.}
+\section{Storing Data in Ethereum}\label{sec:evaluation_ethereum}
+\subsection{SC Storage}\label{subsection:evaluation_sc}
 \begin{figure}[htbp]
     \begin{subfigure}{\linewidth}
-        \centerline{\includegraphics[width=9cm]{figs/Storage1.pdf}}
+        \centerline{\includegraphics[width=\textwidth]{figs/Storage1.pdf}}
         \caption{}
         \label{fig:arrays_1}
     \end{subfigure}
     \begin{subfigure}{\linewidth}
-        \centerline{\includegraphics[width=9cm]{figs/Storage2.pdf}}
+        \centerline{\includegraphics[width=\textwidth]{figs/Storage2.pdf}}
         \caption{}
         \label{fig:arrays_2}
     \end{subfigure}
@@ -30,6 +30,7 @@ Except for being monetarily viable, DApps need to perform adequately when it com
 
 In order to perform this experiment, we designed a simple SC with the following elements: a public string variable to store our data, a function to modify this string and another one to reset it. In total, we tested three of the most common scenarios.
 
+% TODO: maybe with instead of to?
 \begin{itemize}[topsep=0pt, itemsep=0pt]
   \item Storing data after resetting the variable (clean storage).
   \item Updating the variable to a longer string (double the size), Fig.~\ref{fig:arrays_1}.
@@ -50,67 +51,12 @@ The baseline of 21000 gas for every transaction and the gas paid for its payload
 \label{fig:store2}
 \end{figure}
 
-Up to this point, we discussed gas consumption based on the EIPs introduced prior to (including) Muir Glacier. EIP-2929  \citep{buterin_eip_2929}, included in Berlin fork, reforms SLOAD and SSTORE gas metering. We only present the changes that were found to affect our test cases. As reference, the corresponding Geth’s implementation was used  \citep{ethereum_2022}.
+Up to this point, we discussed gas consumption based on the EIPs introduced prior to (including) Muir Glacier. EIP-2929, included in Berlin fork, reforms SLOAD and SSTORE gas metering.
 
-\vspace{0.2cm}
-\noindent
-\textsc{sload} cost modification:
-   \begin{itemize}[topsep=0pt, itemsep=0pt]
-     \item  \textsc{warm\_sload}: charge 100 gas if slot has already been accessed in current execution context.
-     \item  \textsc{cold\_sload}: charge 2100 gas if slot has not been accessed in current execution context.
-   \end{itemize}
-   
-\vspace{0.2cm}
-\noindent
- \textsc{sstore} cost modification:
-   \begin{itemize}[topsep=0pt, itemsep=0pt]
-     \item  Initialize a slot:
-     \begin{itemize}[topsep=0pt, itemsep=0pt]
-        \item If slot is not already accessed: charge \textsc{cold\_sload} + \textsc{sstore} = 2100 + 20000 = 22100
-        \item If slot is already accessed: charge \textsc{sstore} = 20000
-     \end{itemize}
-   \end{itemize}
-   
-   \begin{itemize}[topsep=0pt, itemsep=0pt]
-     \item  Update a slot: 
-     \begin{itemize}[topsep=0pt, itemsep=0pt]
-        \item If slot is not already accessed: charge \textsc{cold\_sload} + \textsc{(sstore\_reset - cold\_sload)} = 5000
-        \item If slot is already accessed: charge \textsc{(sstore\_reset - cold\_sload)} = 5000 – 2100 = 2900
-     \end{itemize}
-   \end{itemize}
-   
-   \begin{itemize}[topsep=0pt, itemsep=0pt]
-     \item  Overwriting a slot with the same value (no-op):
-     \begin{itemize}[topsep=0pt, itemsep=0pt]
-        \item If slot is not already accessed: charge \textsc{(cold\_sload + warm\_sload)} = 2100 + 100 = 2200
-        \item If slot is already accessed: charge \textsc{warm\_sload} = 100 
-     \end{itemize}
-   \end{itemize}
-   
-Considering the altered cost model, we re-executed all test cases to examine Ethereum’s actual behavior after the Berlin hard fork. In order to be up-to-date, we also repeated our study when the London hard fork was implemented. Gas consumption related to the SSTORE and SLOAD operations was not altered by any of the included EIPs. However, EIP-1559 specifies a transaction pricing mechanism that temporarily raises the block’s gas limit when congestion occurs. This enabled us to store up to 16KBs in contrast to the 12KBs that we managed to store in previous experiments. In Fig.~\ref{fig:store1} we present our most recent results, since they reflect the impact that both hard forks induced.
+% TODO: cite EIP-1559
+Considering the altered cost model outlined in paragraph \ref{par:eip_2929_cold_warm}, we re-executed all test cases to examine Ethereum’s actual behavior after the Berlin hard fork. In order to be up-to-date, we also repeated our study when the London hard fork was implemented. Gas consumption related to the SSTORE and SLOAD operations was not altered by any of the included EIPs. However, EIP-1559 specifies a transaction pricing mechanism that temporarily raises the block’s gas limit when congestion occurs. This enabled us to store up to 16KBs in contrast to the 12KBs that we managed to store in previous experiments. In Fig.~\ref{fig:store1} we present our most recent results, since they reflect the impact that both hard forks induced.
 
-\begin{table}[htbp]
-\caption{Impact of the Optional Access List}
-\label{table:access_list}
-\resizebox{9cm}{!}{%
-\begin{tabular}{@{}lll@{}}
-\toprule
- & \textbf{No access list} & \textbf{Access list}  \\ \midrule
-\textbf{Account} & \begin{tabular}[c]{@{}l@{}}2600 for first access + \\ 100 for each subsequent access\end{tabular} & \begin{tabular}[c]{@{}l@{}}2400 to be included in the AL + \\ 100 for each access\end{tabular} \\
-\textbf{SLOAD} & \begin{tabular}[c]{@{}l@{}}2100 for first access + \\ 100 for each subsequent access\end{tabular} & \begin{tabular}[c]{@{}l@{}}1900 to be included in the AL + \\ 100 for each access\end{tabular}
-\\
-\textbf{SSTORE} & \begin{tabular}[c]{@{}l@{}}22100 for each initialization\end{tabular} & \begin{tabular}[c]{@{}l@{}}1900 to be included in the AL + \\ 20000 for each initialization\end{tabular}
-\\
-\textbf{SSTORE} & \begin{tabular}[c]{@{}l@{}}5000 for each update\end{tabular} & \begin{tabular}[c]{@{}l@{}}1900 to be included in the AL + \\ 2900 for each update\end{tabular}
-\\
-\textbf{SSTORE} & \begin{tabular}[c]{@{}l@{}}2200 for each each update (same value)\end{tabular} & \begin{tabular}[c]{@{}l@{}}1900 to be included in the AL + \\ 100 for each update (same value)\end{tabular}
-\\* \bottomrule
-
-\end{tabular}%
-}
-\end{table}
-
-Overall, all transactions after EIP- 2929 had a higher cost, especially those regarding our first test case, in which, every slot had to be initialized imposing an overhead of 2100 gas. Regarding the third test case, all transactions executed after the fork proved to cost 600 more. By debugging those, we discovered that this difference is caused by the SLOAD gas metering modification. Basically, when updating a string, the slot that holds the string’s length is accessed twice; once to determine the string’s length (SLOAD) and a second time to update it to the new length (SSTORE). The SLOAD operation is considered a COLD\_SLOAD and costs 2100 gas. The SSTORE on the currently \emph{``warm''} slot is considered a \emph{``no-op''} since the length of the string remains the same and costs 100 gas. Before EIP-2929 took effect, these operations were charged 800 each.
+Overall, all transactions after EIP-2929 had a higher cost, especially those regarding our first test case, in which, every slot had to be initialized imposing an overhead of 2100 gas. Regarding the third test case, all transactions executed after the fork proved to cost 600 more. By debugging those, we discovered that this difference is caused by the SLOAD gas metering modification. Basically, when updating a string, the slot that holds the string’s length is accessed twice; once to determine the string’s length (SLOAD) and a second time to update it to the new length (SSTORE). The SLOAD operation is considered a COLD\_SLOAD and costs 2100 gas. The SSTORE on the currently \emph{``warm''} slot is considered a \emph{``no-op''} since the length of the string remains the same and costs 100 gas. Before EIP-2929 took effect, these operations were charged 800 each.
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=9cm]{figs/access_list.pdf}}
@@ -118,30 +64,10 @@ Overall, all transactions after EIP- 2929 had a higher cost, especially those re
 \label{fig:access_list}
 \end{figure}
 
-Besides EIP-2929, EIP-2930 was also included in the Berlin hard fork. EIP-2930  \citep{buterin_eip_2930} adds a new transaction type and introduces the notion of an optional AL, a list of addresses and storage keys that the transaction plans to access. This essentially enables a user to “warm-up” the accounts and storage slots they plan to access, at a discounted cost. The following equation gives the intrinsic cost of the new transaction type:
+Besides EIP-2929, EIP-2930 was also included in the Berlin hard fork. As a result, users can now specify a list of addresses and storage keys that the transaction plans to access, which are \emph{``warmed up''} and consequently subsequent accesses come at a discounted price (see paragraph \ref{par:eip_2930_access_list}).
 
-\begin{flushleft}
-\centering
-$ 21000 + 16 * \textsc{non\_zero\_bytes} + 4 * \textsc{zero\_bytes} + 1900 * \textsc{storage\_key\_count } + 2400 * \textsc{address\_count}$
-\end{flushleft}
-
-% \begin{flushleft}
-% \centering
-% $\textsc <cidv1> ::= <multibase><multicodec-version><multicodec-content-type><multihash>$
-% \end{flushleft}
-
-% \[
-% 21000 + 16 * \textsc{non\_zero\_bytes} +
-% 4 * \textsc{zero\_bytes} +
-% 1900 * \textsc{storage\_key\_count } +
-% 2400 * \textsc{address\_count}
-% \]
-
-\vspace{0.2cm}
-
-All the accounts and storage slots specified in the AL are considered “warmed up” and consequently SLOAD, *CALL, BALANCE, EXT* operations on them are charged as if they were already accessed, in accordance with EIP-2929. Table~\ref{table:access_list} is a simplified representation of the access-cost when an AL is or is not utilized.
-
-Based on Table~\ref{table:access_list} one would assume that declaring an AL is a better option, at all times, as 100 gas would be saved for every account/storage access and 200 gas for every SSTORE operation. However, that is not the case. If storage keys of the targeted contract are specified in an AL, the targeted contract account must be included as well, imposing an overhead of 2400 gas. 
+Based on Table~\ref{table:access_list} one would assume that declaring an AL is a better option, at all times, as 100 gas would be saved for every account/storage access and 200 gas for every SSTORE operation. However, that is not the case. If storage keys of the targeted contract are specified in an AL, the targeted contract account must be included as well, imposing an overhead of 2400 gas.
+% TODO: add https://eips.ethereum.org/EIPS/eip-3521
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=9cm]{figs/reset.pdf}}
@@ -151,17 +77,18 @@ Based on Table~\ref{table:access_list} one would assume that declaring an AL is 
 
 The behavior described above is depicted in Fig.~\ref{fig:access_list}. When the string’s size is under 352 bytes, using an AL is more expensive due to the gas paid for including the contract’s address. On the contrary, storing a string longer than 352 bytes is more cost-efficient if an AL is declared. In brief, the 2400 overhead is countered by the 12 or more SSTORE operations that access each of the storage slots that contain the string's data and the SLOAD operation required to determine the string's length, which are charged at a discounted rate, i.e., 200 and 100 less gas respectively.
 
+% TODO: if one uses access list they should refrain
 As a general guide, one should opt in for the use of ALs, but refrain from specifying storage slots of the targeted contract account. Yet, if the main contract interacts with other contracts, which then access their storage, specifying their addresses (but not tx.to) and storage keys in an AL is less expensive than not using an AL.
 
 Handling the data of a DApp involves data storage, retrieval and deletion. In Ethereum, SC storage is considered a valuable resource and therefore a gas refund is given when data is erased.
 
 In Fig.~\ref{fig:reset}, we present the overall cost associated with clearing the slots occupied by a string’s data. Considering that clearing a slot entails updating its value from non-zero to zero, the actual execution cost is comparable to that of updating a string to a new one (see Fig.~\ref{fig:arrays_2}), except that in this case the string's length is also updated; 5000 gas is charged for every SSTORE operation on the slots that the string occupies. Though, the refund granted for these operations contributes to a lower overall transaction cost.
 
-London hard fork introduced EIP-3529  \citep{buterin_eip_3529} which modified the refund mechanism. Prior to this, emptying a slot was rewarded with 15000 gas and the total refund was capped at 50\% of the transaction’s gas used. In the London fork implementation both the reward and the refund were reduced to 4800 gas and 20\%, respectively. Fig.~\ref{fig:reset} demonstrates the impact that this modification has on the cost related to deleting a string. All transactions incurred an increase of approximately 38\% in gas usage.
+London hard fork introduced EIP-3529  \citep{buterin_eip_3529} which modified the refund mechanism (see paragraph \ref{par:eip_3529_refund}). Prior to this, emptying a slot was rewarded with 15000 gas and the total refund was capped at 50\% of the transaction’s gas used. In the London fork implementation both the reward and the refund were reduced to 4800 gas and 20\%, respectively. Fig.~\ref{fig:reset} demonstrates the impact that this modification has on the cost related to deleting a string. All transactions incurred an increase of approximately 38\% in gas usage.
 
-\subsection{Event-logs}\label{subsection:}
+\subsection{Event-logs}\label{subsection:evaluation_logs}
 
-Prior to any further analysis, we ought to mention that in preliminary experiments, counters were used as identifiers (ids) for the events, as illustrated in Table~\ref{table:event}. However, the use of counters entails the execution of an SLOAD operation, which gets their values in order to pass them as parameters to the events and also an SLOAD and SSTORE operation for incrementing them, imposing an overhead of 6600 gas in every transaction. Considering this, in our recent experiments, we decided to pass the ids as arguments. Hence, the results presented in this work are rather indicative of the effect that emitting an event has on gas consumption, as the need for extra contract logic was eliminated.
+Prior to any further analysis, \hl{we ought to mention that in preliminary experiments}, counters were used as identifiers (ids) for the events, as illustrated in Table~\ref{table:event}. However, the use of counters entails the execution of an SLOAD operation, which gets their values in order to pass them as parameters to the events and also an SLOAD and SSTORE operation for incrementing them, imposing an overhead of 6600 gas in every transaction. Considering this, in our recent experiments, we decided to pass the ids as arguments. Hence, the results presented in this work are rather indicative of the effect that emitting an event has on gas consumption, as the need for extra contract logic was eliminated.
 
 As we can observe in Fig.~\ref{fig:logs} the resulting costs from calling each event, exhibit relatively small divergence. Through  \citep{wood_2014} we know that each topic costs 375 gas. Respectively, there is a charge of 8 gas for each byte of data recorded in the data field of the logs. Thereby, the number of topics generated by the event call in each of the cases we examined, as well as the amount of data recorded in the log data field, are key factors in the cost variance between them. These are determined by the way the events are declared, as shown in Table~\ref{table:event}. If the id is indexed it is placed in the topics array along with the event’s signature hash, otherwise it is ABI encoded into the data field of the log. Additionally, since the input data are identical in all the events and the contract's code is immutable by default, the constant gap maintained by the four graphs is justified.
 
@@ -193,7 +120,7 @@ Finally, even though anonymous events are the least expensive option, they shoul
 \label{fig:logs}
 \end{figure}
 
-\subsection{Transaction Payload}\label{subsection:}
+\subsection{Transaction Payload}\label{subsection:evaluation_payload}
 The first step of this experiment was to encode the data in hex format. Then, we included the resulting hex byte array in the data field of a transaction object, signed it and sent it. Note that no ether was transferred during any of the transactions. We tried two different ways of implementing this method:
 
 \begin{itemize}[topsep=0pt, itemsep=0pt]
@@ -224,7 +151,7 @@ As already mentioned, an event could be emitted inside the fallback function to 
 \label{fig:fallback}
 \end{figure}
 
-\subsection{Unused Function Parameters}\label{subsection:}
+\subsection{Unused Function Parameters}\label{subsection:evaluation_unused}
 This experiment was performed to examine the cost of storing data in a transaction’s payload while exploiting Solidity’s built-in ABI interface.
 Such a scheme overcomes the restriction imposed by the previous method as it facilitates the management of all the data types that Solidity supports, without the need of additional client logic. 
 
@@ -244,7 +171,7 @@ As we already mentioned, the fact that non-indexed parameters are ABI encoded in
 
 At this point, we would like to discuss some possible drawbacks regarding this alternative storage method. First, by testing we discovered that Solidity imposes a restriction on the number of parameters a function can bear (around sixteen). If this threshold is exceeded, a \emph{``stack too deep''} error is thrown. Additionally, defining a function with unused function parameters causes a warning at compilation. Thus, it might be disallowed in future Solidity versions.
 
-\section{Experiments - Data Retrieval in Ethereum}\label{sec:}
+\section{Data Retrieval in Ethereum}\label{sec:evaluation_ethereum_retrieval}
 In this subsection, based on our experimental measurements, we present an overall comparison of the time needed to retrieve data from the Ethereum blockchain. Each measurement refers to the retrieval time of the data that were stored during the previous experiments. We noticed that the results were quite similar for the different data sizes (1B – 16KB), so, in Table~\ref{tab:retrieve} we recorded the average of these results. Also, we should mention that retrieving data stored in unused function parameters is a two-step process: the respective logs must be retrieved to acquire the transaction hash and then the transaction itself must be retrieved to acquire the targeted data. Likewise, using events without indexed parameters implies that additional logic should be implemented to find the desired data among the returned events. In any case, these delays were found to be insignificant compared to the time needed to retrieve the respective events. Thus, all measurements presented in Table~\ref{tab:retrieve} include any necessary additional step.
 
 Considering the measurements presented in Table~\ref{tab:retrieve}, it is obvious that both retrieving data from contract’s storage or retrieving a transaction and extracting its data, require substantially less time than that of the other test cases. That is because these particular retrieval processes are ultimately single database queries that target either the Storage Trie or a Transaction Trie. 
@@ -252,7 +179,8 @@ Considering the measurements presented in Table~\ref{tab:retrieve}, it is obviou
 \begin{table}[]
 \caption{Retrieval latency in Ethereum (ms)}
 \label{tab:retrieve}
-\resizebox{9cm}{!}{%
+\centering
+\resizebox{12cm}{!}{%
 \begin{tabular}{@{}ccc@{}}
 \toprule
  & \multicolumn{2}{c}{\textbf{Retrieval Latency}} \\ \midrule
@@ -296,7 +224,8 @@ It is noteworthy that Geth uses LevelDB to manage the blockchain's data. Driven 
 \begin{table}[htbp]
 \caption{Retrieval latency in Ethereum with clear cache (ms)}
 \label{tab:retrieve_clear}
-\resizebox{9cm}{!}{%
+\centering
+\resizebox{12cm}{!}{%
 \begin{tabular}{@{}ccc@{}}
 \toprule
  & \multicolumn{2}{c}{\textbf{Retrieval Latency}} \\ \midrule
@@ -340,11 +269,11 @@ high latency is avoided.} \\
 
 To sum up, retrieving logs is time-consuming and imposes an overhead in most of the methods we proposed. However, one can make this compromise considering the cost reduction that these alternatives bring. Apart from that, if managing an external database for storing the transaction hashes is not discouraging, data could be stored in a transaction’s payload or even in unused function parameters, without emitting an event, which imposes an extra cost. By doing so, the cost as well as the retrieval time are reduced substantially.
 
-\section{Experiments - IPFS \& SWARM}\label{sec:}
+\section{IPFS \& SWARM}\label{sec:evaluation_dfs}
 The aim of this experiment was to examine the use of IPFS and Swarm alongside Ethereum. We stored data blocks of size 4KB–16MB in these platforms and recorded the resulting identifiers in Ethereum using both SC storage and logs. The cost related to storing these identifiers in Ethereum was examined as well. 
 
 Details about remote experiments...
-\subsection{Storing data identifiers in Ethereum}\label{subsection:}
+\subsection{Storing data identifiers in Ethereum}\label{subsection:evaluation_identifiers}
 In general, the cost of recording content identifiers in Ethereum is consistent due to the constant length of the identifiers. However, in IPFS, using a CID v1 instead of CID v0, will result in higher gas consumption as it requires more storage space. CID v1 format \citep{multiformat}, which will be the default in the near future, consists of four parts
 
 % \[\textsc <cidv1> ::= <multibase><multicodec-version><multicodec-content-type><multihash>\]
@@ -372,7 +301,7 @@ Based on Table~\ref{tab:hash_cost}, we conclude that storing only the hash diges
 \centering
 \caption{Cost of storing data identifiers (gas)}
 \label{tab:hash_cost}
-\resizebox{9cm}{!}{%
+\resizebox{12cm}{!}{%
 \begin{tabular}{@{}lcccc@{}}
 \toprule
  & \multicolumn{2}{c}{\textbf{IPFS}} & \multicolumn{2}{c}{\textbf{Swarm}} \\* \midrule
@@ -394,7 +323,7 @@ The use of logs as a data store for the identifiers leads to higher retrieval la
 In all the test cases we examined, the CIDs v1 were generated using the SHA-256 hash function (default option). Hash functions that produce a shorter or same-sized hash digest would result in similar gas consumption whereas hash functions like SHA-512 would increase the cost, since additional storage slots or longer log arrays would be necessary to store them.
 
 As discussed in Section~\ref{subsec:distributed}, when it comes to Swarm, the identifiers’ representation is fairly simple. For unencrypted content 32 bytes suffice, otherwise 64 bytes are required. Thus, gas consumption in Swarm’s case is straightforward. A developer, based on the above table can choose the appropriate method.
-\subsection{Local Upload and retrieval performance - IPFS \& SWARM}\label{subsection:}
+\subsection{Local Upload \& Retrieval Performance}\label{subsection:evaluation_local}
 The measurements presented in Fig.~\ref{fig: ipfs_swarm_upload}, indicate that uploading data up to 256KB in Swarm is quite fast. Above this threshold, performance deteriorates substantially. We must consider that data are split into chunks which are hashed and organized in a Binary Merkle Tree. Obviously, the number of calculations included in this process is proportional to the size of the data and definitely affects the upload-time.
 
 IPFS behaves similarly, except that the size of the data has smaller impact on its performance. This mostly stems from the fact that chunk’s default size (256KB) in IPFS is 64 times the size of a Swarm chunk (4KB), rendering the process of splitting the data and organizing the chunks in a Merkle-Dag faster. Accordingly, the quite stable measurements for data up to 256KB are justified, as they fit in one chunk. To substantiate this claim, we uploaded data on IPFS with the chunker option set to 4KB instead of 256KB. In all tests, the upload latency increased significantly. In fact, Swarm proved to be far more efficient in this scenario. On top of that, the different algorithms and data structures used by each platform to split, store and link data, contribute to the performance gap between them.
@@ -416,224 +345,217 @@ As we can observe from Fig.~\ref{fig: ipfs_swarm_retrieve}, Swarm lacks in perfo
 \setlength{\belowcaptionskip}{-10pt}
 
 We ought to clarify that by conducting these experiments we meant to compare the performance of IPFS and Swarm, regarding local upload and retrieval. The results are nothing but representative of how these platforms behave when exchanging data between remote nodes. Besides that, Swarm updated its networking protocol from DevP2P to LibP2P and introduced a new client, which we used during our experiments. The fact that it is in primary stage and improvements are frequently made might render our results obsolete in the near future.
-\subsection{Remote Upload and retrieval performance - IPFS \& SWARM}\label{subsection:}
+\subsection{Remote Upload and Retrieval Performance}\label{subsection:evaluation_remote}
 
-\paragraph{IPFS}
-% Please add the following required packages to your document preamble:
-% \usepackage{booktabs}
-\begin{table}[H]
-\caption{Table for experiment disconnect}
-\begin{tabular}{@{}lcccccccc@{}}
-\toprule
-Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb              \\ \midrule
-chetemi-9.lille  & 612  & 282  & 1010  & 891  & 1679  & 2264  & 1929  & 16 \\
-dahu-32.grenoble  & 146  & 456  & 2133  & 679  & 1065  & 857  & 1158  & 16 \\
-degroot  & 1933  & 2014  & 2192  & 1622  & 1892  & 2639  & 3028  & 30 \\
-graphite-4.nancy  & 835  & 1352  & 1868  & 723  & 1305  & 1440  & 1980  & 24 \\
-paravance-51.rennes  & 1097  & 2360  & 4096  & 2835  & 1403  & 2882  & 1874  & 18 \\
-uvb-9.sophia  & 425  & 617  & 3902  & 1056  & 1228  & 779  & 1796  & 16 \\
-\bottomrule
-\end{tabular}
-\end{table}
+% \paragraph{IPFS}
+% % Please add the following required packages to your document preamble:
+% % \usepackage{booktabs}
+% \begin{table}[H]
+% \caption{Table for experiment disconnect}
+% \begin{tabular}{@{}lcccccccc@{}}
+% \toprule
+% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb              \\ \midrule
+% chetemi-9.lille  & 612  & 282  & 1010  & 891  & 1679  & 2264  & 1929  & 16 \\
+% dahu-32.grenoble  & 146  & 456  & 2133  & 679  & 1065  & 857  & 1158  & 16 \\
+% degroot  & 1933  & 2014  & 2192  & 1622  & 1892  & 2639  & 3028  & 30 \\
+% graphite-4.nancy  & 835  & 1352  & 1868  & 723  & 1305  & 1440  & 1980  & 24 \\
+% paravance-51.rennes  & 1097  & 2360  & 4096  & 2835  & 1403  & 2882  & 1874  & 18 \\
+% uvb-9.sophia  & 425  & 617  & 3902  & 1056  & 1228  & 779  & 1796  & 16 \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
 
-% Please add the following required packages to your document preamble:
-% \usepackage{booktabs}
-\begin{table}[H]
-\caption{Table for experiment do-not-cache}
-\begin{tabular}{@{}lcccccccc@{}}
-\toprule
-Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-chetemi-9.lille  & 1560  & 80  & 96  & 120  & 133  & 433  & 574  & 8 \\
-dahu-9.grenoble  & 1189  & 261  & 111  & 134  & 142  & 228  & 602  & 8 \\
-degroot  & 1457  & 162  & 1349  & 293  & 344  & 482  & 1374  & 13 \\
-graphite-1.nancy  & 980  & 70  & 100  & 134  & 139  & 221  & 611  & 11 \\
-paravance-8.rennes  & 2564  & 69  & 101  & 130  & 150  & 214  & 555  & 11 \\
-uvb-9.sophia  & 3788  & 1441  & 104  & 148  & 164  & 262  & 798  & 8 \\
-\bottomrule
-\end{tabular}
-\end{table}
+% % Please add the following required packages to your document preamble:
+% % \usepackage{booktabs}
+% \begin{table}[H]
+% \caption{Table for experiment do-not-cache}
+% \begin{tabular}{@{}lcccccccc@{}}
+% \toprule
+% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+% chetemi-9.lille  & 1560  & 80  & 96  & 120  & 133  & 433  & 574  & 8 \\
+% dahu-9.grenoble  & 1189  & 261  & 111  & 134  & 142  & 228  & 602  & 8 \\
+% degroot  & 1457  & 162  & 1349  & 293  & 344  & 482  & 1374  & 13 \\
+% graphite-1.nancy  & 980  & 70  & 100  & 134  & 139  & 221  & 611  & 11 \\
+% paravance-8.rennes  & 2564  & 69  & 101  & 130  & 150  & 214  & 555  & 11 \\
+% uvb-9.sophia  & 3788  & 1441  & 104  & 148  & 164  & 262  & 798  & 8 \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
 
-% Please add the following required packages to your document preamble:
-% \usepackage{booktabs}
-\begin{table}[H]
-\caption{Table for experiment do-not-cache-disconnect}
-\begin{tabular}{@{}lcccccccc@{}}
-\toprule
-Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-chetemi-9.lille  & 83  & 485  & 1033  & 1122  & 1164  & 2281  & 1549  & 4 \\
-dahu-32.grenoble  & 707  & 992  & 895  & 1144  & 1627  & 983  & 1713  & 7 \\
-degroot  & 1407  & 1441  & 1552  & 1605  & 1925  & 3428  & 2802  & 16 \\
-graphite-4.nancy  & 743  & 2391  & 686  & 710  & 2416  & 693  & 2042  & 8 \\
-paravance-51.rennes  & 667  & 938  & 288  & 592  & 1351  & 988  & 1194  & 7 \\
-uvb-9.sophia  & 103  & 499  & 1760  & 895  & 2538  & 1274  & 2691  & 4 \\
-\bottomrule
-\end{tabular}
-\end{table}
+% % Please add the following required packages to your document preamble:
+% % \usepackage{booktabs}
+% \begin{table}[H]
+% \caption{Table for experiment do-not-cache-disconnect}
+% \begin{tabular}{@{}lcccccccc@{}}
+% \toprule
+% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+% chetemi-9.lille  & 83  & 485  & 1033  & 1122  & 1164  & 2281  & 1549  & 4 \\
+% dahu-32.grenoble  & 707  & 992  & 895  & 1144  & 1627  & 983  & 1713  & 7 \\
+% degroot  & 1407  & 1441  & 1552  & 1605  & 1925  & 3428  & 2802  & 16 \\
+% graphite-4.nancy  & 743  & 2391  & 686  & 710  & 2416  & 693  & 2042  & 8 \\
+% paravance-51.rennes  & 667  & 938  & 288  & 592  & 1351  & 988  & 1194  & 7 \\
+% uvb-9.sophia  & 103  & 499  & 1760  & 895  & 2538  & 1274  & 2691  & 4 \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
 
-% Please add the following required packages to your document preamble:
-% \usepackage{booktabs}
-\begin{table}[H]
-\caption{Table for experiment normal}
-\begin{tabular}{@{}lcccccccc@{}}
-\toprule
-Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-chetemi-9.lille  & 308  & 139  & 186  & 257  & 1549  & 519  & 1606  & 21 \\
-dahu-32.grenoble  & 453  & 123  & 165  & 219  & 252  & 588  & 1539  & 23 \\
-degroot  & 849  & 161  & 204  & 287  & 439  & 802  & 2260  & 25 \\
-graphite-4.nancy  & 357  & 120  & 150  & 191  & 247  & 464  & 1291  & 23 \\
-paravance-51.rennes  & 397  & 117  & 166  & 215  & 232  & 411  & 1527  & 24 \\
-uvb-9.sophia  & 432  & 145  & 175  & 248  & 325  & 672  & 2079  & 24 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-
-
-\paragraph{IPFS - miletus degroot nancy}
-% Please add the following required packages to your document preamble:
-% \usepackage{booktabs}
-\begin{table}[H]
-\caption{Table for experiment disconnect}
-\begin{tabular}{@{}lcccccccc@{}}
-\toprule
-Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-degroot  & 945  & 639  & 2375  & 771  & 1761  & 801  & 3308  & 12 \\
-graphite-3.nancy  & 1618  & 938  & 1601  & 4838  & 1653  & 2231  & 5079  & 12 \\
-miletus  & 443  & 2086  & 1064  & 3974  & 2504  & 3101  & 7313  & 12 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-% Please add the following required packages to your document preamble:
-% \usepackage{booktabs}
-\begin{table}[H]
-\caption{Table for experiment do-not-cache}
-\begin{tabular}{@{}lcccccccc@{}}
-\toprule
-Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-degroot  & 158  & 100  & 117  & 143  & 232  & 522  & 2008  & 16 \\
-graphite-3.nancy  & 244  & 152  & 164  & 195  & 288  & 678  & 1881  & 15 \\
-miletus  & 173  & 155  & 102  & 170  & 501  & 1269  & 3672  & 14 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-% Please add the following required packages to your document preamble:
-% \usepackage{booktabs}
-\begin{table}[H]
-\caption{Table for experiment do-not-cache-disconnect}
-\begin{tabular}{@{}lcccccccc@{}}
-\toprule
-Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-degroot  & 1993  & 343  & 755  & 385  & 3017  & 1207  & 2705  & 12 \\
-graphite-3.nancy  & 532  & 909  & 1141  & 1285  & 1486  & 4015  & 2876  & 7 \\
-miletus  & 302  & 1790  & 6352  & 1328  & 2343  & 3955  & 6663  & 9 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-% Please add the following required packages to your document preamble:
-% \usepackage{booktabs}
-\begin{table}[H]
-\caption{Table for experiment normal}
-\begin{tabular}{@{}lcccccccc@{}}
-\toprule
-Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-degroot  & 200  & 105  & 123  & 144  & 232  & 503  & 1810  & 16 \\
-graphite-3.nancy  & 159  & 145  & 160  & 179  & 208  & 381  & 1258  & 16 \\
-miletus  & 362  & 275  & 194  & 214  & 521  & 1738  & 6155  & 16 \\
-\bottomrule
-\end{tabular}
-\end{table}
+% % Please add the following required packages to your document preamble:
+% % \usepackage{booktabs}
+% \begin{table}[H]
+% \caption{Table for experiment normal}
+% \begin{tabular}{@{}lcccccccc@{}}
+% \toprule
+% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+% chetemi-9.lille  & 308  & 139  & 186  & 257  & 1549  & 519  & 1606  & 21 \\
+% dahu-32.grenoble  & 453  & 123  & 165  & 219  & 252  & 588  & 1539  & 23 \\
+% degroot  & 849  & 161  & 204  & 287  & 439  & 802  & 2260  & 25 \\
+% graphite-4.nancy  & 357  & 120  & 150  & 191  & 247  & 464  & 1291  & 23 \\
+% paravance-51.rennes  & 397  & 117  & 166  & 215  & 232  & 411  & 1527  & 24 \\
+% uvb-9.sophia  & 432  & 145  & 175  & 248  & 325  & 672  & 2079  & 24 \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
 
 
 
+% \paragraph{IPFS - miletus degroot nancy}
+% % Please add the following required packages to your document preamble:
+% % \usepackage{booktabs}
+% \begin{table}[H]
+% \caption{Table for experiment disconnect}
+% \begin{tabular}{@{}lcccccccc@{}}
+% \toprule
+% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+% degroot  & 945  & 639  & 2375  & 771  & 1761  & 801  & 3308  & 12 \\
+% graphite-3.nancy  & 1618  & 938  & 1601  & 4838  & 1653  & 2231  & 5079  & 12 \\
+% miletus  & 443  & 2086  & 1064  & 3974  & 2504  & 3101  & 7313  & 12 \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
 
-\paragraph{Swarm}
+% % Please add the following required packages to your document preamble:
+% % \usepackage{booktabs}
+% \begin{table}[H]
+% \caption{Table for experiment do-not-cache}
+% \begin{tabular}{@{}lcccccccc@{}}
+% \toprule
+% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+% degroot  & 158  & 100  & 117  & 143  & 232  & 522  & 2008  & 16 \\
+% graphite-3.nancy  & 244  & 152  & 164  & 195  & 288  & 678  & 1881  & 15 \\
+% miletus  & 173  & 155  & 102  & 170  & 501  & 1269  & 3672  & 14 \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
 
-% Please add the following required packages to your document preamble:
-% \usepackage{booktabs}
-\begin{table}[H]
-\caption{Table for experiment disconnect}
-\begin{tabular}{@{}lcccccccc@{}}
-\toprule
-Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-chetemi-9.lille  & 23  & 106  & 316  & 294  & 1038  & 2725  & 8410  & 9 \\
-dahu-9.grenoble  & 86  & 225  & 376  & 460  & 1146  & 3384  & 9339  & 9 \\
-degroot  & 148  & 347  & 425  & 620  & 2008  & 5025  & 9884  & 3 \\
-graphite-4.nancy  & 63  & 208  & 327  & 432  & 1102  & 3129  & 7469  & 9 \\
-paravance-9.rennes  & 58  & 179  & 402  & 360  & 1018  & 3341  & 8612  & 10 \\
-uvb-9.sophia  & 87  & 255  & 451  & 534  & 1377  & 3834  & 9508  & 6 \\
-\bottomrule
-\end{tabular}
-\end{table}
+% % Please add the following required packages to your document preamble:
+% % \usepackage{booktabs}
+% \begin{table}[H]
+% \caption{Table for experiment do-not-cache-disconnect}
+% \begin{tabular}{@{}lcccccccc@{}}
+% \toprule
+% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+% degroot  & 1993  & 343  & 755  & 385  & 3017  & 1207  & 2705  & 12 \\
+% graphite-3.nancy  & 532  & 909  & 1141  & 1285  & 1486  & 4015  & 2876  & 7 \\
+% miletus  & 302  & 1790  & 6352  & 1328  & 2343  & 3955  & 6663  & 9 \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
 
-% Please add the following required packages to your document preamble:
-% \usepackage{booktabs}
-\begin{table}[H]
-\caption{Table for experiment do-not-cache}
-\begin{tabular}{@{}lcccccccc@{}}
-\toprule
-Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-chetemi-9.lille  & 13  & 135  & 153  & 343  & 895  & 2671  & 6304  & 5 \\
-dahu-9.grenoble  & 34  & 224  & 287  & 476  & 1189  & 3512  & 11754  & 6 \\
-degroot  & 104  & 327  & 521  & 778  & 1744  & 4632  & 13793  & 9 \\
-graphite-4.nancy  & 16  & 187  & 203  & 475  & 1153  & 3050  & 7832  & 4 \\
-paravance-9.rennes  & 21  & 154  & 146  & 444  & 983  & 3155  & 7520  & 3 \\
-uvb-9.sophia  & 54  & 292  & 280  & 489  & 1136  & 3402  & 11738  & 6 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-% Please add the following required packages to your document preamble:
-% \usepackage{booktabs}
-\begin{table}[H]
-\caption{Table for experiment do-not-cache-disconnect}
-\begin{tabular}{@{}lcccccccc@{}}
-\toprule
-Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-chetemi-9.lille  & 34  & 151  & 177  & 405  & 876  & 2616  & 7975  & 5 \\
-dahu-9.grenoble  & 33  & 231  & 285  & 447  & 1073  & 3155  & 9418  & 5 \\
-degroot  & 222  & 358  & 372  & 1040  & 1698  & 5321  & 11447  & 2 \\
-graphite-4.nancy  & 32  & 234  & 326  & 382  & 920  & 2827  & 7647  & 5 \\
-paravance-9.rennes  & 37  & 215  & 316  & 439  & 1043  & 3370  & 8176  & 6 \\
-uvb-9.sophia  & 105  & 229  & 337  & 449  & 1212  & 3343  & 8950  & 6 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-% Please add the following required packages to your document preamble:
-% \usepackage{booktabs}
-\begin{table}[H]
-\caption{Table for experiment normal}
-\begin{tabular}{@{}lcccccccc@{}}
-\toprule
-Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-chetemi-9.lille  & 49  & 81  & 191  & 289  & 673  & 2086  & 9710  & 11 \\
-dahu-9.grenoble  & 43  & 171  & 220  & 440  & 864  & 2633  & 9461  & 11 \\
-degroot  & 119  & 331  & 524  & 621  & 1721  & 4418  & 12738  & 11 \\
-graphite-4.nancy  & 32  & 186  & 229  & 426  & 915  & 2838  & 8037  & 8 \\
-paravance-9.rennes  & 64  & 144  & 278  & 447  & 1017  & 2967  & 9319  & 10 \\
-uvb-9.sophia  & 58  & 175  & 195  & 453  & 895  & 2677  & 10532  & 10 \\
-\bottomrule
-\end{tabular}
-\end{table}
+% % Please add the following required packages to your document preamble:
+% % \usepackage{booktabs}
+% \begin{table}[H]
+% \caption{Table for experiment normal}
+% \begin{tabular}{@{}lcccccccc@{}}
+% \toprule
+% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+% degroot  & 200  & 105  & 123  & 144  & 232  & 503  & 1810  & 16 \\
+% graphite-3.nancy  & 159  & 145  & 160  & 179  & 208  & 381  & 1258  & 16 \\
+% miletus  & 362  & 275  & 194  & 214  & 521  & 1738  & 6155  & 16 \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
 
 
 
 
-% TODO:
+% \paragraph{Swarm}
 
-% tha mporousa isws na valw kai block kwdika apo ta smart contracts sto experimental setup i kapoio allo section gia na deiksw pws einai ta sumvolaia pou xrisimopoihsa
+% % Please add the following required packages to your document preamble:
+% % \usepackage{booktabs}
+% \begin{table}[H]
+% \caption{Table for experiment disconnect}
+% \begin{tabular}{@{}lcccccccc@{}}
+% \toprule
+% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+% chetemi-9.lille  & 23  & 106  & 316  & 294  & 1038  & 2725  & 8410  & 9 \\
+% dahu-9.grenoble  & 86  & 225  & 376  & 460  & 1146  & 3384  & 9339  & 9 \\
+% degroot  & 148  & 347  & 425  & 620  & 2008  & 5025  & 9884  & 3 \\
+% graphite-4.nancy  & 63  & 208  & 327  & 432  & 1102  & 3129  & 7469  & 9 \\
+% paravance-9.rennes  & 58  & 179  & 402  & 360  & 1018  & 3341  & 8612  & 10 \\
+% uvb-9.sophia  & 87  & 255  & 451  & 534  & 1377  & 3834  & 9508  & 6 \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
+
+% % Please add the following required packages to your document preamble:
+% % \usepackage{booktabs}
+% \begin{table}[H]
+% \caption{Table for experiment do-not-cache}
+% \begin{tabular}{@{}lcccccccc@{}}
+% \toprule
+% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+% chetemi-9.lille  & 13  & 135  & 153  & 343  & 895  & 2671  & 6304  & 5 \\
+% dahu-9.grenoble  & 34  & 224  & 287  & 476  & 1189  & 3512  & 11754  & 6 \\
+% degroot  & 104  & 327  & 521  & 778  & 1744  & 4632  & 13793  & 9 \\
+% graphite-4.nancy  & 16  & 187  & 203  & 475  & 1153  & 3050  & 7832  & 4 \\
+% paravance-9.rennes  & 21  & 154  & 146  & 444  & 983  & 3155  & 7520  & 3 \\
+% uvb-9.sophia  & 54  & 292  & 280  & 489  & 1136  & 3402  & 11738  & 6 \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
+
+% % Please add the following required packages to your document preamble:
+% % \usepackage{booktabs}
+% \begin{table}[H]
+% \caption{Table for experiment do-not-cache-disconnect}
+% \begin{tabular}{@{}lcccccccc@{}}
+% \toprule
+% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+% chetemi-9.lille  & 34  & 151  & 177  & 405  & 876  & 2616  & 7975  & 5 \\
+% dahu-9.grenoble  & 33  & 231  & 285  & 447  & 1073  & 3155  & 9418  & 5 \\
+% degroot  & 222  & 358  & 372  & 1040  & 1698  & 5321  & 11447  & 2 \\
+% graphite-4.nancy  & 32  & 234  & 326  & 382  & 920  & 2827  & 7647  & 5 \\
+% paravance-9.rennes  & 37  & 215  & 316  & 439  & 1043  & 3370  & 8176  & 6 \\
+% uvb-9.sophia  & 105  & 229  & 337  & 449  & 1212  & 3343  & 8950  & 6 \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
+
+% % Please add the following required packages to your document preamble:
+% % \usepackage{booktabs}
+% \begin{table}[H]
+% \caption{Table for experiment normal}
+% \begin{tabular}{@{}lcccccccc@{}}
+% \toprule
+% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
+% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
+% chetemi-9.lille  & 49  & 81  & 191  & 289  & 673  & 2086  & 9710  & 11 \\
+% dahu-9.grenoble  & 43  & 171  & 220  & 440  & 864  & 2633  & 9461  & 11 \\
+% degroot  & 119  & 331  & 524  & 621  & 1721  & 4418  & 12738  & 11 \\
+% graphite-4.nancy  & 32  & 186  & 229  & 426  & 915  & 2838  & 8037  & 8 \\
+% paravance-9.rennes  & 64  & 144  & 278  & 447  & 1017  & 2967  & 9319  & 10 \\
+% uvb-9.sophia  & 58  & 175  & 195  & 453  & 895  & 2677  & 10532  & 10 \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
