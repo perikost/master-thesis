@@ -84,7 +84,7 @@ The Ethereum blockchain, while effective for executing code and processing data 
 \label{fig: hybrid}
 \end{figure}
 
-Distributed file systems like IPFS and Swarm can be integrated with blockchain networks like Ethereum to overcome limitations related to data storage, providing a scalable and efficient solution for fully decentralized applications. \replace{With that being said,}{Considering this,} most blockchain-based applications with high storage requirements would need to consider an on-chain/off-chain hybrid architecture.
+Distributed file systems like IPFS and Swarm can be integrated with blockchain networks like Ethereum to overcome limitations related to data storage, providing a scalable and efficient solution for fully decentralized applications. With that being said, most blockchain-based applications with high storage requirements would need to consider an on-chain/off-chain hybrid architecture.
 
 Data storage in hybrid schemes follows a two-step approach as shown in fig. \ref{fig: hybrid}:
 \begin{enumerate}
@@ -95,6 +95,6 @@ Data storage in hybrid schemes follows a two-step approach as shown in fig. \ref
 % To summarize, coupling a blockchain with a distributed file system allows for decentralized and secure storage and retrieval of data.
 The immutable nature of the blockchain provides a tamper-proof way of storing the identifiers. Besides that, blockchain technology provides a built-in mechanism for timestamping (each block contains a timestamp). This can be leveraged to create provable timestamps for data stored off-chain. In conjunction with the characteristics of self-verification and authenticity that distributed file systems offer through content addressing, data integrity of such schemes is guaranteed.
 
-\replace{When it comes to storing the}{Regarding the storage of} identifiers in Ethereum, any of the methods that we described in the previous paragraphs can be adopted. Storing them in SC storage is the most straightforward option. On the other hand, alternatives like the event-logs, the transaction payload or the unused function arguments are far less expensive. In addition, the retrieval latency of each approach must be considered as well. Both aspects are examined and discussed in detail in the next chapter, \replace{which will hopefully enable developers}{providing developers with the necessary information} to make a more informed choice.
+When it comes to storing the identifiers in Ethereum, any of the methods that we described in the previous paragraphs can be adopted. Storing them in SC storage is the most straightforward option. On the other hand, alternatives like the event-logs, the transaction payload or the unused function arguments are far less expensive. In addition, the retrieval latency of each approach must be considered as well. Both aspects are examined and discussed in detail in the next chapter,which will hopefully enable developers to make a more informed choice.
 
 For data retrieval, the process is simple. The DApp retrieves the identifier from the blockchain and then uses it to retrieve the actual data from the respective distributed file system.
