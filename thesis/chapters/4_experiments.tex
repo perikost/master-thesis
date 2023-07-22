@@ -245,26 +245,30 @@ It is noteworthy that Geth uses LevelDB to manage the blockchain's data. Driven 
 \end{table}
 
 \begin{table*}[!h]
- \centering
+\begin{scriptsize}
+\centering
 \caption{Overall comparison of Ethereum's data stores.}
 \label{table:overall}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}p{0.1\linewidth}p{0.09\linewidth} p{0.09\linewidth}p{0.09\linewidth}p{0.55\linewidth}@{}}
 \toprule
  &  & \textbf{Storage Cost} & \textbf{Retrieval Latency} & \textbf{Comments} \\* \midrule
-\textbf{Storage} & & Very High  & Very Low & \multirow{3}{10cm}{Viable option only when storing small data. Should host all the data that is essential for the SC's proper operation, since data stored using any of the alternative methods is not accessible within the SC. }\\\\\\* \midrule
-\multirow{4}{*}{\textbf{Event-logs}} & \textbf{Non-Indexed}& Low&Moderate &\multirow{4}{10cm}{Suitable for archiving data at a low cost. Filtering specific logs is time consuming but limiting the filtering block-range and exploiting indexed parameters can accelerate the process. Thus, events should be declared according to the DApps' needs, so that %when retrieval performance matters,%
+\textbf{Storage} & & Very High  & Very Low & \multirow{3}{8cm}{Viable option only when storing small data. Should host all the data that is essential for the SC's proper operation, since data stored using any of the alternative methods is not accessible within the SC. }\\\\\\\\* \midrule
+\multirow{4}{*}{\textbf{Event-logs}} & \textbf{Non-Indexed}& Low&Moderate &\multirow{4}{8cm}{Suitable for archiving data at a low cost. Filtering specific logs is time consuming but limiting the filtering block-range and exploiting indexed parameters can accelerate the process. Thus, events should be declared according to the DApps' needs, so that %when retrieval performance matters,%
 high latency is avoided.} \\
  & \textbf{Indexed} &Low&Moderate   \\
  & \textbf{Anonymous} & Low & Very High  \\
  & \textbf{Anonymous Indexed} &Low & High   \\* \midrule
-\textbf{Transaction Payload} & \textbf{CA} &Very Low - Moderate& Very Low - Very High & \multirow{3}{10cm}{Least expensive method if the target is an EOA. The transaction hashes must be saved off-chain. In case of transactions to CAs, the cost and the retrieval performance are effected by the manner the SC's fallback is implemented.} \\
+\textbf{Transaction Payload} & \textbf{CA} &Very Low - Moderate& Very Low - Very High & \multirow{3}{8cm}{Least expensive method if the target is an EOA. The transaction hashes must be saved off-chain. In case of transactions to CAs, the cost and the retrieval performance are effected by the manner the SC's fallback is implemented.} \\
 
 % The most cost-efficient method when transactions are targeted to EOAs. Transaction hashes must be saved off-chain. For transactions to CAs cost and retrieval performance are effected by the type of the event emitted in the fallback
 
 \textbf{} & \textbf{EOA} &Very Low& Very Low \\\\* \midrule
-\textbf{Unused functions parameters} & & Very Low  & Very Low - Very High  &\multirow{4}{10cm}{A useful variant of the previous method. Data is essentially stored in the transaction payload but the ABI specification is exploited, facilitating the management of all supported data types. Events can be used for tracking the transaction hashes at the expense of retrieval performance.}\\\\\\* \bottomrule
+\textbf{Unused functions parameters} & & Very Low  & Very Low - Very High  &\multirow{4}{8cm}{A useful variant of the previous method. Data is essentially stored in the transaction payload but the ABI specification is exploited, facilitating the management of all supported data types. Events can be used for tracking the transaction hashes at the expense of retrieval performance.}\\\\\\* \bottomrule
 \end{tabular}%
 % }
+}
+\end{scriptsize}
 \end{table*}
 
 To sum up, retrieving logs is time-consuming and imposes an overhead in most of the methods we proposed. However, one can make this compromise considering the cost reduction that these alternatives bring. Apart from that, if managing an external database for storing the transaction hashes is not discouraging, data could be stored in a transaction’s payload or even in unused function parameters, without emitting an event, which imposes an extra cost. By doing so, the cost as well as the retrieval time are reduced substantially.
@@ -347,9 +351,226 @@ As we can observe from Fig.~\ref{fig: ipfs_swarm_retrieve}, Swarm lacks in perfo
 We ought to clarify that by conducting these experiments we meant to compare the performance of IPFS and Swarm, regarding local upload and retrieval. The results are nothing but representative of how these platforms behave when exchanging data between remote nodes. Besides that, Swarm updated its networking protocol from devp2p to libp2p and introduced a new client, which we used during our experiments. The fact that it is in primary stage and improvements are frequently made might render our results obsolete in the near future.
 \subsection{Remote Upload and Retrieval Performance}\label{subsection:evaluation_remote}
 
-% \paragraph{IPFS}
-% % Please add the following required packages to your document preamble:
-% % \usepackage{booktabs}
+\begin{table}[H]
+\centering
+\begin{small}
+\caption{Accumulated measurements for IPFS. The dataset consists of 3990 samples in total (including failures), with retrieval failure ratio of $\sim 30\%$ }
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Size & Mean & Median & Skewness & Min & Max & Sample Size \\ \midrule
+4KB & 876.96 & 177.07 & 7.06 & 6.99 & 29391.19 & 415\\
+16KB & 691.94 & 148.4 & 7.82 & 3.13 & 29803.37 & 390\\
+64KB & 1031.23 & 215.52 & 6.47 & 3.32 & 29352.31 & 384\\
+256KB & 751.66 & 273.82 & 10.53 & 38.86 & 30001.96 & 400\\
+1MB & 959.27 & 315.87 & 8.88 & 9.67 & 27258.05 & 410\\
+4MB & 1126.27 & 449.5 & 7.03 & 99.65 & 27082.3 & 412\\
+16MB & 1807.24 & 1271.9 & 5.29 & 297.5 & 26714.33 & 398\\
+\bottomrule
+\end{tabular}
+\end{small}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{small}
+\caption{Accumulated measurements for IPFS without outliers.}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+Size & Mean & Median & Skewness & Min & Max & Sample Size & Outliers \\ \midrule
+4KB & 146.85 & 145.64 & 0.31 & 6.99 & 394.83 & 326 & 89\\
+16KB & 113.8 & 141.63 & -0.32 & 3.13 & 243.88 & 328 & 62\\
+64KB & 153.98 & 158.9 & 0.67 & 3.32 & 655.62 & 295 & 89\\
+256KB & 210.55 & 174.56 & 1.4 & 38.86 & 891.33 & 318 & 82\\
+1MB & 737.98 & 310.51 & 1.49 & 9.67 & 3600.76 & 391 & 19\\
+4MB & 564.25 & 415.7 & 1.82 & 99.65 & 2399.45 & 363 & 49\\
+16MB & 1359.79 & 1216.78 & 1.21 & 297.5 & 4592.43 & 369 & 29\\
+\bottomrule
+\end{tabular}
+\end{small}
+\end{table}
+
+
+
+
+\begin{table}[H]
+\centering
+\begin{small}
+\caption{Accumulated measurements for Swarm. The dataset consists of 2795 samples in total (including failures), with retrieval failure ratio of $\sim 8.5\%$ }
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Size & Mean & Median & Skewness & Min & Max & Sample Size \\ \midrule
+4KB & 67.32 & 52.38 & 2.06 & 1.19 & 420.3 & 395\\
+16KB & 226.24 & 202.78 & 0.78 & 2.66 & 794.08 & 395\\
+64KB & 352.05 & 321.35 & 0.94 & 3.32 & 1194.75 & 395\\
+256KB & 506.17 & 469.51 & 0.71 & 4.69 & 1484.6 & 395\\
+1MB & 1262.27 & 1211.74 & 0.07 & 10.56 & 2673.54 & 400\\
+4MB	& 3538 & 3497.82 & -0.59 & 34.05 & 7884.58 & 404\\
+16MB & 9555.86 & 9047.49 & 1.83 & 5822.69 & 20503.51 & 169\\
+\bottomrule
+\end{tabular}
+\end{small}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{small}
+\caption{Accumulated measurements for Swarm without outliers.}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+Size & Mean & Median & Skewness & Min & Max & Sample Size & Outliers \\ \midrule
+4KB & 43.66 & 50.49 & 0.74 & 1.19 & 182.76 & 356 & 39\\
+16KB & 218.75 & 196.73 & 0.58 & 2.66 & 662.08 & 389 & 6\\
+64KB & 330.4 & 319.61 &	0 & 3.32 & 677.07 & 380 & 15\\
+256KB & 483.43 & 465.3 & 0.04 & 4.69 & 978.37 & 381 & 14\\
+1MB & 1276.7 & 1217.82 & 0.65 & 675.32 & 2259.57 & 378 & 22\\
+4MB & 3623.02 & 3520.14 & 0.5 & 2165.56 & 5889.15 & 387 & 17\\
+16MB & 9037.03 & 8914.55 & 0.46 & 5822.69 & 14261.94 & 159 & 10\\
+\bottomrule
+\end{tabular}
+\end{small}
+\end{table}
+
+
+
+\begin{table}[H]
+\centering
+\begin{small}
+\caption{Accumulated measurements for each experiment in IPFS without outliers.}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+Experiment    & \multicolumn{7}{c}{Data Size}          & Failures (\%) \\ \midrule
+& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb              \\ \midrule
+normal & 199.88 & 154.76 & 171.33 & 194.54 & 212.07 & 402.53 & 1209.93 & 4 \\
+no-cache  & 160.85 & 51.96 & 72.66 & 97.88 & 116.75 & 195.59 & 638.54 & 24 \\
+disconnect  & 135.36 & 124.72 & 1168.58 & 310.82 & 1360.46 & 469.56 & 1275.26 & 37 \\
+no-cache-disconnect  & 151.11 & 163.59 & 263.22 & 313.85 & 1758.96 & 759.66 & 1801.96  & 53 \\
+\bottomrule
+\end{tabular}
+\end{small}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{small}
+\caption{Accumulated measurements for each experiment in Swarm without outliers.}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+Experiment    & \multicolumn{7}{c}{Data Size}          & Failures (\%) \\ \midrule
+& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb              \\ \midrule
+normal & 35.91 & 207.6 & 302.56 & 475.75 & 1126.42 & 3727.21 & 9815.11 & 9 \\
+no-cache  & 50.49 & 258.35 & 314.25 & 467.14 & 1206.17 & 3418.18 & 8391.32 & 9 \\
+disconnect  & 52.21 & 179.63 & 344.74 & 467.44 & 1247.89 & 3507.51 & 8713.88 & 7 \\
+no-cache-disconnect  & 51.54 & 152.27 & 327.29 & 441.47 & 1208.57 & 3497.87 & 8567 & 10 \\
+\bottomrule
+\end{tabular}
+\end{small}
+\end{table}
+
+
+
+\begin{table}[H]
+\centering
+\begin{small}
+\caption{IPFS: accumulated measurements for our machine (degroot). The dataset consists of 665 samples in total (including failures), with retrieval failure ratio of $\sim 6.5\%$ }
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Size & Mean & Median & Skewness & Min & Max & Sample Size \\ \midrule
+4KB & 1421.16 & 242.18 & 1.18 & 139.82 & 5819.67 & 88\\
+16KB & 1065.02 & 170.23 & 2.54 & 128.68 & 10072.69 & 86\\
+64KB & 1308.95 & 249.04 & 3.58 & 131.93 & 14766.25 & 87\\
+256KB & 981.47 & 313.59 & 1.89 & 143.75 & 5293.09 & 90\\
+1MB & 1249.65 & 385.42 & 1.22 & 195.49 & 5071.64 & 89\\
+4MB & 1799.89 & 516.34 & 4.38 & 337.33 & 21345.4 & 93\\
+16MB & 2476.33 & 1499.17 & 1.72 & 995.34 & 9461.04 & 89\\
+\bottomrule
+\end{tabular}
+\end{small}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{small}
+\caption{IPFS: accumulated measurements for Lille site. The dataset consists of 665 samples in total (including failures), with retrieval failure ratio of $\sim 44\%$ }
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Size & Mean & Median & Skewness & Min & Max & Sample Size \\ \midrule
+4KB & 556.61 & 130.76 & 5.58 & 33.68 & 10806.75 & 56\\
+16KB & 199.35 & 123.73 & 4.32 & 28.48 & 2182.87 & 51\\
+64KB & 485.99 & 175.87 & 2.23 & 40.17 & 3269.44 & 52\\
+256KB & 491.22 & 201.17 & 2.25 & 49.33 & 3402.34 & 52\\
+1MB & 1325.06 & 272.27 & 6.46 & 58.97 & 27258.05 & 55\\
+4MB & 1298.11 & 464.68 & 6.03 & 108.31 & 22407.71 & 54\\
+16MB & 1618.79 & 1098.98 & 2.91 & 304.16 & 9793.04 & 52\\
+\bottomrule
+\end{tabular}
+\end{small}
+\end{table}
+
+
+
+
+
+\begin{table}[H]
+\centering
+\begin{small}
+\caption{Swarm: accumulated measurements for our machine (degroot). The dataset consists of 458 samples in total (including failures), with retrieval failure ratio of $\sim 9\%$ }
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Size & Mean & Median & Skewness & Min & Max & Sample Size \\ \midrule
+4KB & 125.64 & 106.78 & 1.13 & 1.19 & 375.95 & 65\\
+16KB & 355.39 & 356.69 & 0.35 & 6.21 & 731.93 & 65\\
+64KB & 506.36 & 455.06 & 0.8 & 6.14 & 1034.46 & 65\\
+256KB & 701.1 & 659.04 & 0.52 & 10.05 & 1484.6 & 65\\
+1MB & 1752.64 & 1718.43 & -0.5 & 16.36 & 2673.54 & 65\\
+4MB & 4703.53 & 4606.77 & -1.05 & 39.54 & 7884.58 & 66\\
+16MB & 12671.97 & 11706.08 & 0.8 & 8623.28 & 18851.85 & 25\\
+\bottomrule
+\end{tabular}
+\end{small}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{small}
+\caption{Swarm: accumulated measurements for Lille site. The dataset consists of 474 samples in total (including failures), with retrieval failure ratio of $\sim 8\%$ }
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Size & Mean & Median & Skewness & Min & Max & Sample Size \\ \midrule
+4KB & 31.59 & 31.63 & 4.54 & 2.41 & 398.32 & 67\\
+16KB & 129.7 & 62.44 & 1.51 & 3.38 & 515.84 & 67\\
+64KB & 262.84 & 267.23 & 0.09 & 3.72 & 588.63 & 67\\
+256KB & 384.88 & 365.31 & 0.45 & 5.01 & 811.72 & 67\\
+1MB & 991.81 & 976.45 & -0.61 & 10.82 & 1796.9 & 68\\
+4MB & 2874.76 & 2855.04 & -1.46 & 34.05 & 4680.03 & 68\\
+16MB & 8463.23 & 8544.81 & -0.14 & 5822.69 & 10991.23 & 30\\
+\bottomrule
+\end{tabular}
+\end{small}
+\end{table}
+
+
+
+
+
+\begin{table}[H]
+\centering
+\begin{small}
+\caption{Accumulated measurements for each experiment in Swarm without outliers (degroot-miletus-nancy).}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+Experiment    & \multicolumn{7}{c}{Data Size}          & Failures (\%) \\ \midrule
+& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb              \\ \midrule
+normal & 188.38 & 149.39 & 158.54 & 167.08 & 292.41 & 461.01 & 1816.65 & 0 \\
+no-cache  & 146.06 & 141.99 & 143.93 & 152.68 & 261.62 & 524.04 & 1955.46 & 3 \\
+disconnect  & 189.47 & 306.23 & 1252.18 & 1281.77 & 1751.59 & 1458.82 & 3536.62 & 12 \\
+no-cache-disconnect  & 198.14 & 170.18 & 1230.74 & 372.82 & 1961.7 & 2011.86 & 3162.53 & 27 \\
+\bottomrule
+\end{tabular}
+\end{small}
+\end{table}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
 % \begin{table}[H]
 % \caption{Table for experiment disconnect}
 % \begin{tabular}{@{}lcccccccc@{}}
