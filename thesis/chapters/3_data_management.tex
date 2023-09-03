@@ -3,11 +3,11 @@
 \section{Ethereum}\label{sec:}
 
 
-\subsection{Storing Data in SC Storage}\label{subsection:}
+\subsection{Storing Data in SC Storage}\label{sec:sc_storage}
 SC storage is a non-volatile key-value store, mapping 32-byte words to 32-byte words. Programming languages used for SC developing simplify the manipulation of storage by providing an abstraction on top of the EVM. Specifically, Solidity supports a plethora of static data types as well as some dynamic types, namely dynamic arrays and mappings.
 
 \begin{figure}[htbp]
-\centerline{\includegraphics[width=9cm]{figs/Storage.pdf}}
+\centerline{\includegraphics[width=\textwidth]{figs/Storage.pdf}}
 \caption{Layout of dynamic arrays in SC storage.}
 \label{fig:arrays}
 \end{figure}
@@ -57,7 +57,7 @@ With this term we refer to input data that are passed as function parameters but
 
 Moreover, this method includes a function call and therefore permits the execution of additional logic during the same transaction, as opposed to the aforementioned method. For instance, an event could be emitted inside the function, providing a way of future-tracking the respective transaction and retrieving its data, eliminating the need for storing the transaction hash externally.
 
-\subsection{Retrieving logs}\label{subsection:}
+\subsection{Retrieving logs}\label{subsection:retrieving_logs}
 In Ethereum log retrieval is accomplished with a specialized BF  \citep{wood_2014}. A BF  \citep{broder_2004} is a space-efficient probabilistic data structure used to quickly check whether an element is part of a set. 
 
 A BF is represented by an array of m bits $\{b_1, b_2,…, b_m\}$ all initialized to zero. An element is inserted into the BF as follows. Its value is hashed k times with k independent hash functions $\{h_1, h_2,.., h_k\}$. Each time, based on the resulting hash and a mathematical formula, a bit of the BF is set to one. To determine if an element is present in the set, the same process is repeated. If all the k corresponding bits are 1s, then the element might be in the set. Otherwise, it is certainly not part of the set. In other words, a BF may return false-positives but never false negatives.
@@ -68,7 +68,7 @@ When it comes to retrieving a specific log, each block’s BF needs to be inspec
 To sum up, using BFs is much more efficient than a conventional search, but be that as it may, it is still time consuming because false positives are common and lead to additional retrievals to check if the log is the desired one. As expected, our findings (Section \ref{sec:evaluation_ethereum_retrieval}) confirm that limiting the block filtering range can substantially reduce the retrieval latency.
 
 \section{Hybrid Schemes}\label{sec:}
-The Ethereum blockchain, while effective for executing code and processing data in a decentralized manner, it is not optimized for storing large volumes of data due to high costs \hl{and low space}. Consequently, in scenarios where decentralized applications must handle a lot of data, a direct on-chain storage approach isn't viable.
+The Ethereum blockchain, while effective for executing code and processing data in a decentralized manner, it is not optimized for storing large volumes of data due to high costs and low space. Consequently, in scenarios where decentralized applications must handle a lot of data, a direct on-chain storage approach isn't viable.
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=12cm]{figs/hybrid.png}}
