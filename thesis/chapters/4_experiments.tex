@@ -1,7 +1,5 @@
 \chapter{Experimental Evaluation}\label{chapter:experiments}
-In this section we describe the experimental environment and provide details about the criteria we chose to focus on, and the steps followed in our experiments. Besides that, we discuss the corresponding results. The project's source code and other supplementary material are available on GitHub\footnote{\url{https://github.com/perikost/ExploringEthereum}}.
-
-Before proceeding further, we should mention an important detail concerning the data we used during our experiments. Solidity uses UTF8 encoding, according to which common ASCII characters are represented by a single byte. Additionally, generating random fixed-length character sequences is simple and all the methods we examined support this format. So, to evaluate the cost of storage in Ethereum, for each test case, we recorded 15 measurements regarding various string sizes equally spread across the range of 1B-16KB. However, for those cases that exhibited consistent behavior we present only part of our measurements.
+In this section we describe the experimental environment and provide details about the criteria we chose to focus on, and the steps followed in our experiments. Besides that, we discuss the corresponding results. The project's source code and other supplementary material are available on GitHub\footnote{\url{https://github.com/perikost/master-thesis}}.
 
 \section{Experimental Setup}\label{sec:}
 \subsection{Local experiments}\label{sec:}
@@ -9,10 +7,12 @@ We conducted our experiments on a machine with i7-8700 CPU, 64GB RAM, 2TB SSD ru
 \subsection{Remote Experiments}\label{sec:}
 Grid5000...
 \section{Criteria}\label{sec:}
-For evaluating the sustainability of using Ethereum as a stand-alone data store, we emphasized on the associated gas cost. In this regard, we thoroughly examined the \hl{most common storage methods}, the SC storage, and the event-logs. Considering these as reference points, we explored alternatives and cost-wise compared the resulting gas costs. In addition, the implementation complexity of each approach was considered. Our findings are summarized in Table~\ref{table:overall}. \hl{On the other hand, the respective costs of the hybrid schemes are presented} in Table~\ref{tab:hash_cost}. Among others, the results confirm that the use of SC storage incurs costs that are orders of magnitude larger than the alternative data stores we examined.
+For evaluating the sustainability of using Ethereum as a stand-alone data store, we emphasized on the associated gas cost. In this regard, we thoroughly examined the most common storage methods, the SC storage, and the event-logs. Considering these as reference points, we explored alternatives and cost-wise compared the resulting gas costs. In addition, the implementation complexity of each approach was considered. Our findings are summarized in Table~\ref{table:overall}. Among others, the results confirm that the use of SC storage incurs costs that are orders of magnitude larger than the alternative data stores we examined.
 
-Except for being monetarily viable, DApps need to perform adequately when it comes to retrieving data. That being said, we measured the retrieval time in all the above scenarios. \hl{For IPFS and Swarm, both upload and retrieval performances were taken into account, aiming to a better overall comparison.}
+Except for being monetarily viable, DApps need to perform adequately when it comes to retrieving data. That being said, we measured the retrieval time in all the above scenarios. For IPFS and Swarm, both local and remote latency were taken into account, aiming to a better overall comparison.
 \section{Storing Data in Ethereum}\label{sec:evaluation_ethereum}
+Before proceeding further, we should mention an important detail concerning the data we used during our experiments. Solidity uses UTF8 encoding, according to which common ASCII characters are represented by a single byte. Additionally, generating random fixed-length character sequences is simple and all the methods we examined support this format. So, to evaluate the cost of storage in Ethereum, for each test case, we recorded 15 measurements regarding various string sizes equally spread across the range of 1B-16KB. For those cases that exhibit consistent behavior we present only part of our measurements.
+
 \subsection{SC Storage}\label{subsection:evaluation_sc}
 \begin{figure}[htbp]
     \begin{subfigure}{\linewidth}
@@ -37,16 +37,16 @@ In order to perform this experiment, we designed a simple SC with the following 
   \item Updating the variable to a new string (same size), Fig.~\ref{fig:arrays_2}.
 \end{itemize}
 
-The baseline of 21000 gas for every transaction and the gas paid for its payload are equal in all three cases. So, the number of slots that must be overwritten or initialized during each test case mostly accounts for the difference in the respective costs depicted in Fig.~\ref{fig:store1} and Fig.~\ref{fig:store2}, which was included to present the costs for small data. For data less than 32 bytes, as discussed in subsection~\ref{sec:storage}, one slot is adequate. Otherwise, \(\ceil*{x/32}\) slots for storing the data and one for storing the string's size \(x\), are required. In the case of clean storage, all slots must be initialized, costing \(20000*num\_slots\) gas. When updating a string with a new one of the same size, 5000 gas is deducted for each of the \(\ceil*{x/32}\) slots. Note that the slot holding the string’s length is not updated, as the string’s size does not change. In fact it is overwritten with the same value, which is termed as a \emph{``no-op''} and is charged equally to an SLOAD operation. The second case is a combination of the others and so is the cost calculation method. Some slots must be initialized, and others need to be updated, costing 20000 and 5000 each.
+The baseline of 21000 gas for every transaction and the gas paid for its payload are equal in all three cases. So, the number of slots that must be overwritten or initialized during each test case mostly accounts for the difference in the respective costs depicted in Fig.~\ref{fig:store1} and Fig.~\ref{fig:store2}, which was included to present the costs for small data. For data less than 32 bytes, as discussed in subsection~\ref{sec:sc_storage}, one slot is adequate. Otherwise, \(\ceil*{x/32}\) slots for storing the data and one for storing the string's size \(x\), are required. In the case of clean storage, all slots must be initialized, costing \(20000*num\_slots\) gas. When updating a string with a new one of the same size, 5000 gas is deducted for each of the \(\ceil*{x/32}\) slots. Note that the slot holding the string’s length is not updated, as the string’s size does not change. In fact it is overwritten with the same value, which is termed as a \emph{``no-op''} and is charged equally to an SLOAD operation. The second case is a combination of the others and so is the cost calculation method. Some slots must be initialized, and others need to be updated, costing 20000 and 5000 each.
 
 \begin{figure}[htbp]
-\centerline{\includegraphics[width=9cm]{figs/store1.pdf}}
+\centerline{\includegraphics[width=\textwidth]{figs/store1.pdf}}
 \caption{SC storage cost diagram.}
 \label{fig:store1}
 \end{figure}
 
 \begin{figure}[htbp]
-\centerline{\includegraphics[width=9cm]{figs/store2.pdf}}
+\centerline{\includegraphics[width=\textwidth]{figs/store2.pdf}}
 \caption{Zoomed in view of the diagram in Fig.~\ref{fig:store1}.}
 \label{fig:store2}
 \end{figure}
@@ -59,7 +59,7 @@ Considering the altered cost model outlined in paragraph \ref{par:eip_2929_cold_
 Overall, all transactions after EIP-2929 had a higher cost, especially those regarding our first test case, in which, every slot had to be initialized imposing an overhead of 2100 gas. Regarding the third test case, all transactions executed after the fork proved to cost 600 more. By debugging those, we discovered that this difference is caused by the SLOAD gas metering modification. Basically, when updating a string, the slot that holds the string’s length is accessed twice; once to determine the string’s length (SLOAD) and a second time to update it to the new length (SSTORE). The SLOAD operation is considered a COLD\_SLOAD and costs 2100 gas. The SSTORE on the currently \emph{``warm''} slot is considered a \emph{``no-op''} since the length of the string remains the same and costs 100 gas. Before EIP-2929 took effect, these operations were charged 800 each.
 
 \begin{figure}[htbp]
-\centerline{\includegraphics[width=9cm]{figs/access_list.pdf}}
+\centerline{\includegraphics[width=\textwidth]{figs/access_list.pdf}}
 \caption{SC storage cost diagram (optional AL).}
 \label{fig:access_list}
 \end{figure}
@@ -70,7 +70,7 @@ Based on Table~\ref{table:access_list} one would assume that declaring an AL is 
 % TODO: add https://eips.ethereum.org/EIPS/eip-3521
 
 \begin{figure}[htbp]
-\centerline{\includegraphics[width=9cm]{figs/reset.pdf}}
+\centerline{\includegraphics[width=\textwidth]{figs/reset.pdf}}
 \caption{Cost of clearing SC storage.}
 \label{fig:reset}
 \end{figure}
@@ -88,7 +88,7 @@ London hard fork introduced EIP-3529  \citep{buterin_eip_3529} which modified th
 
 \subsection{Event-logs}\label{subsection:evaluation_logs}
 
-Prior to any further analysis, \hl{we ought to mention that in preliminary experiments}, counters were used as identifiers (ids) for the events, as illustrated in Table~\ref{table:event}. However, the use of counters entails the execution of an SLOAD operation, which gets their values in order to pass them as parameters to the events and also an SLOAD and SSTORE operation for incrementing them, imposing an overhead of 6600 gas in every transaction. Considering this, in our recent experiments, we decided to pass the ids as arguments. Hence, the results presented in this work are rather indicative of the effect that emitting an event has on gas consumption, as the need for extra contract logic was eliminated.
+Prior to any further analysis, we ought to mention that in preliminary experiments \citep{kostamis_2021}, counters were used as identifiers (ids) for the events, as illustrated in Table~\ref{table:event}. However, the use of counters entails the execution of an SLOAD operation, which gets their values in order to pass them as parameters to the events and also an SLOAD and SSTORE operation for incrementing them, imposing an overhead of 6600 gas in every transaction. Considering this, we decided to re-execute the experiments and pass the ids as arguments. Hence, the results presented in this work are rather indicative of the effect that emitting an event has on gas consumption, as the need for extra contract logic was eliminated.
 
 As we can observe in Fig.~\ref{fig:logs} the resulting costs from calling each event, exhibit relatively small divergence. Through  \citep{wood_2014} we know that each topic costs 375 gas. Respectively, there is a charge of 8 gas for each byte of data recorded in the data field of the logs. Thereby, the number of topics generated by the event call in each of the cases we examined, as well as the amount of data recorded in the log data field, are key factors in the cost variance between them. These are determined by the way the events are declared, as shown in Table~\ref{table:event}. If the id is indexed it is placed in the topics array along with the event’s signature hash, otherwise it is ABI encoded into the data field of the log. Additionally, since the input data are identical in all the events and the contract's code is immutable by default, the constant gap maintained by the four graphs is justified.
 
@@ -115,7 +115,7 @@ Finally, even though anonymous events are the least expensive option, they shoul
 % Finally, it is apparent that the use of SC storage incurs costs that are orders of magnitude larger than the currently discussed alternative.
 
 \begin{figure}[htbp]
-\centerline{\includegraphics[width=9cm]{figs/logs_1.pdf}}
+\centerline{\includegraphics[width=\textwidth]{figs/logs_1.pdf}}
 \caption{Event-logs storage cost diagram.}
 \label{fig:logs}
 \end{figure}
@@ -133,7 +133,7 @@ As expected, the measurements confirm that the use of transactions as a data sto
 For the second case we tested, a fallback function in the targeted SC is required, otherwise the transactions will fail. In short, fallback is a special function that gets executed if none of the function selectors match the first four bytes of the transaction payload, or if the latter is empty and no Receive Ether function is defined. Additionally, it cannot have parameters nor return anything. The body of the fallback could either be empty or include function logic. In any case, if arbitrary hex-encoded data is included in the payload of a transaction that is targeted to a SC, the fallback will be executed (no function selector will be matched) and the data will be permanently saved in the blockchain, as part of the transaction. Implementing an empty fallback entails that the transaction hash must be saved externally. On the contrary, emitting an event inside the fallback allows the user to obtain the transaction hash from the resulting logs and retrieve the data from the recorded transaction.
 
 \begin{figure}[htbp]
-\centerline{\includegraphics[width=9cm]{figs/tx.pdf}}
+\centerline{\includegraphics[width=\textwidth]{figs/tx.pdf}}
 \caption{Transaction payload storage cost diagram.}
 \label{fig:tx}
 \end{figure}
@@ -143,10 +143,10 @@ Based on Fig.~\ref{fig:tx}, we are able to compare the cost of saving data in a 
 
 By inspecting the execution of the contract at bytecode level we managed to verify what to our knowledge was first reported, but not explained, in \citep{chen_2018}. Simply put, function selectors, which are comprised of the first four bytes of the Keccak-256 hash of the function's signature and therefore depend on function names and parameter types, are compared to the first four bytes of a transaction’s payload in hex-ascending order. Hence, frequently used functions should be named in an appropriate manner to avoid numerous comparisons, i.e., save gas. Moreover, we believe it is necessary to point out that for a contract with a large number of functions, Solidity optimizes the comparison flow by performing a pre-comparison to check whether the given function selector is or is not above a certain threshold.
 
-As already mentioned, an event could be emitted inside the fallback function to avoid saving the transaction hash off-chain. Similarly to the experiments in~\ref{par:event_exp}, the event should include an id parameter so that the data can be identified upon retrieval. This was achieved in two ways: i) increasing a counter in every call ii) reserving some bytes of the transaction data (e.g., the first 32bytes) to hold the id. The latter is generic since values other than integers can be used, but requires additional logic, both on-chain and off-chain, to separate or concatenate the data and the id. In addition, eschewing the use of a counter significantly reduces the gas consumption, as depicted in Fig.~\ref{fig:fallback}. In fact, since the cost of the log operation is identical in both cases, the difference in the cost depends solely on the need of updating the counter, which involves two SLOAD and one SSTORE operations.
+As already mentioned, an event could be emitted inside the fallback function to avoid saving the transaction hash off-chain. Similarly to the experiments in~\ref{subsection:evaluation_logs}, the event should include an id parameter so that the data can be identified upon retrieval. This was achieved in two ways: i) increasing a counter in every call ii) reserving some bytes of the transaction data (e.g., the first 32bytes) to hold the id. The latter is generic since values other than integers can be used, but requires additional logic, both on-chain and off-chain, to separate or concatenate the data and the id. In addition, eschewing the use of a counter significantly reduces the gas consumption, as depicted in Fig.~\ref{fig:fallback}. In fact, since the cost of the log operation is identical in both cases, the difference in the cost depends solely on the need of updating the counter, which involves two SLOAD and one SSTORE operations.
 
 \begin{figure}[htbp]
-\centerline{\includegraphics[width=9cm]{figs/fallback.pdf}}
+\centerline{\includegraphics[width=\textwidth]{figs/fallback.pdf}}
 \caption{Cost of emitting an event inside the fallback function.}
 \label{fig:fallback}
 \end{figure}
@@ -162,7 +162,7 @@ In order to examine this approach, we declared a function with two parameters; o
 To evaluate the recorded costs, we used the case of indexed events as a reference point. It is obvious from Fig.~\ref{fig:unused} that as input data grow in size, the current approach gets even cheaper than the other. The fact that in this case, no data are recorded in the data part of the produced log, accounts for the difference.
 
 \begin{figure}[htbp]
-\centerline{\includegraphics[width=9cm]{figs/unused.pdf}}
+\centerline{\includegraphics[width=\textwidth]{figs/unused.pdf}}
 \caption{Unused function parameter and event-logs storage cost diagram.}
 \label{fig:unused}
 \end{figure}
@@ -201,17 +201,14 @@ Considering the measurements presented in Table~\ref{tab:retrieve}, it is obviou
 
 On the other hand, the process of retrieving events involves the utilization of BFs and therefore is more complex and leads to higher latency. Though, through an appropriate interface, a developer can specify the block from which the client should start searching for the requested event(s). This can greatly reduce the number of database queries, as less BFs need to be inspected, resulting in faster retrieval. Indeed, we confirmed that searching from the beginning of the blockchain as opposed to specifying a more recent starting point requires significantly more time. In our experiments, as a starting block, we set the ones that our contracts were deployed in since no events could have been emitted before that point. Besides that, we observe that the use of indexed parameters in an event can further improve the retrieval performance.
 
-As mentioned in subsection ~\ref{par:bloom}, three bits of the BF are set by the contract’s address and three for every topic. Anonymous events don’t register their signature hash as a topic. Thereby, filtering an anonymous event with no indexed parameters is accomplished by verifying that the three bits that correspond to the contract’s address are set in the BF. However, every event of the same contract would have set these bits as well. In a similar manner, the bits set by the anonymous indexed event we declared, are also set by every other indexed event; given the same uint256 as input for the indexed parameter, the bits they set coincide. The behavior we describe is demonstrated in Fig.~\ref{fig:bloom_combined}. In brief, anonymous events result in a higher false positive rate thus hindering the retrieval process.
-
-
 \begin{figure}
     \begin{subfigure}{\linewidth}
-        \centerline{\includegraphics[width=9cm]{figs/bloom_indexed.pdf}}
+        \centerline{\includegraphics[width=\textwidth]{figs/bloom_indexed.pdf}}
         \caption{}
         \label{fig:bloom_indexed}
     \end{subfigure}
     \begin{subfigure}{\linewidth}
-        \centerline{\includegraphics[width=9cm]{figs/bloom_anonymous.pdf}}
+        \centerline{\includegraphics[width=\textwidth]{figs/bloom_anonymous.pdf}}
         \caption{}
         \label{fig:bloom_anonymous}
     \end{subfigure}
@@ -219,9 +216,9 @@ As mentioned in subsection ~\ref{par:bloom}, three bits of the BF are set by the
     \label{fig:bloom_combined}
 \end{figure}
 
-It is noteworthy that Geth uses LevelDB to manage the blockchain's data. Driven by the fact that most operating systems utilize free RAM memory for caching, we decided to assess how the system’s cache may influence the retrieval performance. In short, recently accessed LevelDB files are cached by the OS and therefore subsequent requests are served faster. So, we repeated our experiments but dropped the page cache between each run, as it is proposed in  \citep{perez_2020}, and gathered the measurements in Table~\ref{tab:retrieve_clear}. This dramatically delayed the retrieval of data from logs when the starting block was set to zero (i.e., beginning of the chain). Basically, when filtering from block zero, a lot of LevelDB files are accessed to find a specific log. The fact that these files are loaded from disk when they are not available in the system’s cache, justifies this delay. On the other hand, since the required disk accesses are greatly reduced when the search is conducted with a more recent starting point, the retrieval latency is not affected to the same extent.
+As mentioned in subsection ~\ref{subsection:retrieving_logs}, three bits of the BF are set by the contract’s address and three for every topic. Anonymous events don’t register their signature hash as a topic. Thereby, filtering an anonymous event with no indexed parameters is accomplished by verifying that the three bits that correspond to the contract’s address are set in the BF. However, every event of the same contract would have set these bits as well. In a similar manner, the bits set by the anonymous indexed event we declared, are also set by every other indexed event; given the same uint256 as input for the indexed parameter, the bits they set coincide. The behavior we describe is demonstrated in Fig.~\ref{fig:bloom_combined}. In brief, anonymous events result in a higher false positive rate thus hindering the retrieval process.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \caption{Retrieval latency in Ethereum with clear cache (ms)}
 \label{tab:retrieve_clear}
 \centering
@@ -305,7 +302,7 @@ Based on Table~\ref{tab:hash_cost}, we conclude that storing only the hash diges
 \centering
 \caption{Cost of storing data identifiers (gas)}
 \label{tab:hash_cost}
-\resizebox{12cm}{!}{%
+\resizebox{14cm}{!}{%
 \begin{tabular}{@{}lcccc@{}}
 \toprule
  & \multicolumn{2}{c}{\textbf{IPFS}} & \multicolumn{2}{c}{\textbf{Swarm}} \\* \midrule
@@ -326,14 +323,15 @@ The use of logs as a data store for the identifiers leads to higher retrieval la
 
 In all the test cases we examined, the CIDs v1 were generated using the SHA-256 hash function (default option). Hash functions that produce a shorter or same-sized hash digest would result in similar gas consumption whereas hash functions like SHA-512 would increase the cost, since additional storage slots or longer log arrays would be necessary to store them.
 
-As discussed in Section~\ref{subsec:distributed}, when it comes to Swarm, the identifiers’ representation is fairly simple. For unencrypted content 32 bytes suffice, otherwise 64 bytes are required. Thus, gas consumption in Swarm’s case is straightforward. A developer, based on the above table can choose the appropriate method.
+% TODO: add from paper
+As discussed in Subsection~\ref{subsection:swarm}, when it comes to Swarm, the identifiers’ representation is fairly simple. For unencrypted content 32 bytes suffice, otherwise 64 bytes are required. Thus, gas consumption in Swarm’s case is straightforward. A developer, based on the above table can choose the appropriate method.
 \subsection{Local Upload \& Retrieval Performance}\label{subsection:evaluation_local}
 The measurements presented in Fig.~\ref{fig: ipfs_swarm_upload}, indicate that uploading data up to 256KB in Swarm is quite fast. Above this threshold, performance deteriorates substantially. We must consider that data are split into chunks which are hashed and organized in a Binary Merkle Tree. Obviously, the number of calculations included in this process is proportional to the size of the data and definitely affects the upload-time.
 
 IPFS behaves similarly, except that the size of the data has smaller impact on its performance. This mostly stems from the fact that chunk’s default size (256KB) in IPFS is 64 times the size of a Swarm chunk (4KB), rendering the process of splitting the data and organizing the chunks in a Merkle-Dag faster. Accordingly, the quite stable measurements for data up to 256KB are justified, as they fit in one chunk. To substantiate this claim, we uploaded data on IPFS with the chunker option set to 4KB instead of 256KB. In all tests, the upload latency increased significantly. In fact, Swarm proved to be far more efficient in this scenario. On top of that, the different algorithms and data structures used by each platform to split, store and link data, contribute to the performance gap between them.
 
 \begin{figure}[htbp]
-\centerline{\includegraphics[width=9cm]{figs/ipfs_swarm_upload.pdf}}
+\centerline{\includegraphics[width=\textwidth]{figs/ipfs_swarm_upload.pdf}}
 \caption{IPFS-Swarm upload latency.}
 \label{fig: ipfs_swarm_upload}
 \end{figure}
