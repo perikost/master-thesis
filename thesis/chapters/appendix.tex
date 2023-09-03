@@ -1,25 +1,5 @@
-\chapter{Appendix}\label{chapter:appendix}
-
-\begin{table}[H]
-\centering
-\begin{small}
-\caption{Accumulated measurements for experiment \textit{simple} in IPFS. The dataset consists of 1050 samples in total (including failures), with retrieval failure ratio of $\sim 4\%$ }
-\label{tab:normal}
-\begin{tabular}{@{}lccccccc@{}}
-\toprule
-Size & Mean & Median & IQR & Skewness & Min & Max & Sample Size \\ \midrule
-4KB & 472.96 & 211.66 & 109.01 & 3.69 & 30.04 & 5408.44 & 140\\
-16KB & 135.24 & 150.64 & 28.92 & -1.06 & 30.90 & 203.29 & 143\\
-64KB & 176.44 & 175.63 & 90.05 & -0.19 & 34.75 & 382.46 & 143\\
-256KB & 247.11 & 239.92 & 161.51 & 1.17 & 38.85 & 712.93 & 145\\
-1MB & 514.83 & 234.93 & 202.04 & 11.63 & 52.27 & 27258.04 & 146\\
-4MB & 635.02 & 431.22 & 246.71 & 2.64 & 103.36 & 3260.39 & 145\\
-16MB & 1797.22 & 1306.89 & 688.50 & 2.70 & 338.36 & 9525.16 & 144\\
-\bottomrule
-\end{tabular}
-\end{small}
-\end{table}
-
+\chapter*{Appendix}\label{chapter:appendix}
+\phantomsection\addcontentsline{toc}{chapter}{Appendix}
 
 \begin{table}[H]
 \centering
@@ -29,7 +9,7 @@ Size & Mean & Median & IQR & Skewness & Min & Max & Sample Size \\ \midrule
 \toprule
 Experiment    & \multicolumn{7}{c}{Data Size}          & Failures (\%) \\ \midrule
 & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb              \\ \midrule
-normal & 35.91 & 207.6 & 302.56 & 475.75 & 1126.42 & 3727.21 & 9815.11 & 9 \\
+simple & 35.91 & 207.6 & 302.56 & 475.75 & 1126.42 & 3727.21 & 9815.11 & 9 \\
 no-cache  & 50.49 & 258.35 & 314.25 & 467.14 & 1206.17 & 3418.18 & 8391.32 & 9 \\
 disconnect  & 52.21 & 179.63 & 344.74 & 467.44 & 1247.89 & 3507.51 & 8713.88 & 7 \\
 no-cache-disconnect  & 51.54 & 152.27 & 327.29 & 441.47 & 1208.57 & 3497.87 & 8567 & 10 \\
@@ -43,20 +23,41 @@ no-cache-disconnect  & 51.54 & 152.27 & 327.29 & 441.47 & 1208.57 & 3497.87 & 85
 \centering
 \begin{small}
 \caption{Accumulated measurements for each experiment in IPFS without outliers.}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}lcccccccc@{}}
 \toprule
 Experiment    & \multicolumn{7}{c}{Data Size}          & Failures (\%) \\ \midrule
 & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb              \\ \midrule
-normal & 199.88 & 154.76 & 171.33 & 194.54 & 212.07 & 402.53 & 1209.93 & 4 \\
+simple & 199.88 & 154.76 & 171.33 & 194.54 & 212.07 & 402.53 & 1209.93 & 4 \\
 no-cache  & 160.85 & 51.96 & 72.66 & 97.88 & 116.75 & 195.59 & 638.54 & 24 \\
 disconnect  & 135.36 & 124.72 & 1168.58 & 310.82 & 1360.46 & 469.56 & 1275.26 & 37 \\
 no-cache-disconnect  & 151.11 & 163.59 & 263.22 & 313.85 & 1758.96 & 759.66 & 1801.96  & 53 \\
 \bottomrule
 \end{tabular}
+}
 \end{small}
 \end{table}
 
 
+\begin{table}[H]
+\centering
+\begin{small}
+\caption{Accumulated measurements for each experiment in IPFS without outliers (degroot-miletus-nancy).}
+\label{tab:miletus_degroot_nancy}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+Experiment    & \multicolumn{7}{c}{Data Size}          & Failures (\%) \\ \midrule
+& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb              \\ \midrule
+simple & 188.38 & 149.39 & 158.54 & 167.08 & 292.41 & 461.01 & 1816.65 & 0 \\
+no-cache  & 146.06 & 141.99 & 143.93 & 152.68 & 261.62 & 524.04 & 1955.46 & 3 \\
+disconnect  & 189.47 & 306.23 & 1252.18 & 1281.77 & 1751.59 & 1458.82 & 3536.62 & 12 \\
+no-cache-disconnect  & 198.14 & 170.18 & 1230.74 & 372.82 & 1961.7 & 2011.86 & 3162.53 & 27 \\
+\bottomrule
+\end{tabular}
+}
+\end{small}
+\end{table}
 
 \begin{table}[H]
 \centering
@@ -101,53 +102,45 @@ Size & Mean & Median & Skewness & Min & Max & Sample Size & Outliers \\ \midrule
 
 
 
-\begin{table}[H]
-\centering
-\begin{small}
-\caption{Accumulated measurements for each experiment in IPFS without outliers (degroot-miletus-nancy).}
-\begin{tabular}{@{}lcccccccc@{}}
-\toprule
-Experiment    & \multicolumn{7}{c}{Data Size}          & Failures (\%) \\ \midrule
-& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb              \\ \midrule
-normal & 188.38 & 149.39 & 158.54 & 167.08 & 292.41 & 461.01 & 1816.65 & 0 \\
-no-cache  & 146.06 & 141.99 & 143.93 & 152.68 & 261.62 & 524.04 & 1955.46 & 3 \\
-disconnect  & 189.47 & 306.23 & 1252.18 & 1281.77 & 1751.59 & 1458.82 & 3536.62 & 12 \\
-no-cache-disconnect  & 198.14 & 170.18 & 1230.74 & 372.82 & 1961.7 & 2011.86 & 3162.53 & 27 \\
-\bottomrule
-\end{tabular}
-\end{small}
-\end{table}
+% \begin{table}[H]
+% \centering
+% \begin{small}
+% \caption{Accumulated measurements for experiment \textit{simple} in IPFS. The dataset consists of 1050 samples in total (including failures), with retrieval failure ratio of $\sim 4\%$ }
+% \label{tab:simple_dirty}
+% \begin{tabular}{@{}lccccccc@{}}
+% \toprule
+% Size & Mean & Median & IQR & Skewness & Min & Max & Sample Size \\ \midrule
+% 4KB & 472.96 & 211.66 & 109.01 & 3.69 & 30.04 & 5408.44 & 140\\
+% 16KB & 135.24 & 150.64 & 28.92 & -1.06 & 30.90 & 203.29 & 143\\
+% 64KB & 176.44 & 175.63 & 90.05 & -0.19 & 34.75 & 382.46 & 143\\
+% 256KB & 247.11 & 239.92 & 161.51 & 1.17 & 38.85 & 712.93 & 145\\
+% 1MB & 514.83 & 234.93 & 202.04 & 11.63 & 52.27 & 27258.04 & 146\\
+% 4MB & 635.02 & 431.22 & 246.71 & 2.64 & 103.36 & 3260.39 & 145\\
+% 16MB & 1797.22 & 1306.89 & 688.50 & 2.70 & 338.36 & 9525.16 & 144\\
+% \bottomrule
+% \end{tabular}
+% \end{small}
+% \end{table}
 
-
-\begin{table}[H]
-\centering
-\begin{small}
-\caption{Accumulated measurements for experiment \textit{disconnect} in IPFS. The dataset consists of 665 samples in total (including failures), with retrieval failure ratio of $\sim 6.5\%$ }
-\label{tab:disconnect}
-\begin{tabular}{@{}lccccccc@{}}
-\toprule
-Size & Mean & Median & IQR & Skewness & Min & Max & Sample Size \\ \midrule
-4KB & 899.4 & 144.2 & 1040.53 & 2.14 & 6.99 & 8551.52 & 141\\
-16KB & 1234.05 & 139.67 & 1051.18 & 5.94 & 3.13 & 29803.37 & 128\\
-64KB & 2417.38 & 1264.5 & 2557.39 & 3.92 & 3.32 & 29352.31 & 123\\
-256KB & 1474.87 & 335.85 & 1385.74 & 6.63 & 42.83 & 30001.96 & 130\\
-1MB & 1431.46 & 1360.46 & 2015.44 & 0.83 & 9.67 & 5071.64 & 136\\
-4MB & 1783.34 & 494.24 & 1737.18 & 5.14 & 99.65 & 27082.3 & 139\\
-16MB & 2184.65 & 1363.14 & 2050.4 & 5.38 & 297.5 & 26714.33 & 133\\
-\bottomrule
-\end{tabular}
-\end{small}
-\end{table}
-
-
-
-
-
-
-
-
-
-
+% \begin{table}[H]
+% \centering
+% \begin{small}
+% \caption{Accumulated measurements for experiment \textit{disconnect} in IPFS. The dataset consists of 665 samples in total (including failures), with retrieval failure ratio of $\sim 6.5\%$ }
+% \label{tab:disconnect}
+% \begin{tabular}{@{}lccccccc@{}}
+% \toprule
+% Size & Mean & Median & IQR & Skewness & Min & Max & Sample Size \\ \midrule
+% 4KB & 899.4 & 144.2 & 1040.53 & 2.14 & 6.99 & 8551.52 & 141\\
+% 16KB & 1234.05 & 139.67 & 1051.18 & 5.94 & 3.13 & 29803.37 & 128\\
+% 64KB & 2417.38 & 1264.5 & 2557.39 & 3.92 & 3.32 & 29352.31 & 123\\
+% 256KB & 1474.87 & 335.85 & 1385.74 & 6.63 & 42.83 & 30001.96 & 130\\
+% 1MB & 1431.46 & 1360.46 & 2015.44 & 0.83 & 9.67 & 5071.64 & 136\\
+% 4MB & 1783.34 & 494.24 & 1737.18 & 5.14 & 99.65 & 27082.3 & 139\\
+% 16MB & 2184.65 & 1363.14 & 2050.4 & 5.38 & 297.5 & 26714.33 & 133\\
+% \bottomrule
+% \end{tabular}
+% \end{small}
+% \end{table}
 
 
 
@@ -190,10 +183,6 @@ Size & Mean & Median & Skewness & Min & Max & Sample Size \\ \midrule
 \end{small}
 \end{table}
 
-
-
-
-
 \begin{table}[H]
 \centering
 \begin{small}
@@ -234,8 +223,39 @@ Size & Mean & Median & Skewness & Min & Max & Sample Size \\ \midrule
 
 
 
+
+
+
+
+% \begin{figure}[htbp]
+% \centerline{\includegraphics[width=\textwidth]{figs/degroot_disconnect_box_plot.png}}
+% \caption{.}
+% \label{fig:degroot_disconnect_box_plot}
+% \end{figure}
+
+
+\begin{table}[]
+    \caption{Accumulated measurements for the hosts participating in the experiments (IPFS).}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lclllllllllllllcc@{}}
+\toprule
+Host & \multicolumn{14}{c}{Data Size}                                                                                                                                                                                                                                                                                                               & \multicolumn{2}{c}{Failures (\%)}        \\ \midrule
+     & \multicolumn{2}{c}{-----4kb-----}                         & \multicolumn{2}{c}{   16kb   }                          & \multicolumn{2}{c}{64kb}                          & \multicolumn{2}{c}{256kb}                          & \multicolumn{2}{c}{1mb}                          & \multicolumn{2}{c}{4mb}                          & \multicolumn{2}{c}{16mb}                          &             &         \\ \midrule
+     &       \multicolumn{1}{c}{I}              & \multicolumn{1}{c}{S} & \multicolumn{1}{c}{I} & \multicolumn{1}{c}{S} & \multicolumn{1}{c}{I} & \multicolumn{1}{c}{S} & \multicolumn{1}{c}{I} & \multicolumn{1}{c}{S} & \multicolumn{1}{c}{I} & \multicolumn{1}{c}{S} & \multicolumn{1}{c}{I} & \multicolumn{1}{c}{S} & \multicolumn{1}{c}{I} & \multicolumn{1}{c}{S} &           \multicolumn{1}{c}{I} & \multicolumn{1}{c}{S}           \\ \midrule
+ degroot   & 242 & 106 & 170 & 356 & 249 & 455 & 313 & 659 & 385 & 1718 & 516 & 4606 & 1499 & 11706 & 6.5 & 9 \\
+ nancy     & 144 & 50  & 140 & 121 & 153 & 302 & 155 & 422 & 306 & 1141 & 376 & 3220 & 1095 & 7399  & 21  & 9 \\
+ lille     & 130 & 31  & 123 & 62  & 175 & 267 & 201 & 365 & 272 & 976  & 464 & 2855 & 1098 & 8544  & 44 & 8 \\
+ grenoble  & 143 & 52  & 142 & 185 & 157 & 312 & 168 & 476 & 304 & 1183 & 389 & 3485 & 997  & 9405  & 36 & 8 \\
+ rennes    & 147 & 53  & 134 & 129 & 151 & 313 & 166 & 439 & 198 & 1056 & 409 & 3412 & 944  & 8631  & 31 & 8 \\
+ sophia    & 159 & 62  & 153 & 266 & 198 & 339 & 216 & 510 & 243 & 1244 & 449 & 3528 & 1331 & 9677  & 38 & 9 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=\textwidth]{figs/ipfs_peers.png}}
-\caption{EIP standardization process.}
+\caption{Geographical distribution of connected peers in IPFS.}
 \label{fig:ipfs_peers}
 \end{figure}
