@@ -44,4 +44,18 @@ Furthermore, we evaluate the retrieval performance of Ethereum for each of the a
 The last contribution of this work is an assessment of on-chain/off-chain hybrid schemes. In this context, we examine the cost linked to storing (on-chain) identifiers of data hosted in IPFS or Swarm. Obviously, all of Ethereum's data stores can be used for this purpose. We present only the use of the SC storage and the event-logs, but one can use the discussion in section \ref{sec:evaluation_ethereum} as a guide and draw conclusions about the efficiency of the rest of the methods. In addition, we review the upload and download performances of IPFS and Swarm which must be considered in conjunction with the performance of Ethereum in order get an overall perspective of such a scheme. 
 
 \section{Thesis Structure}\label{sec:organization}
-% The structure of this paper is as follows. In Section 2 we discuss the related work. In the next Section, we compare the available data handling practices for on-chain data and describe the main differences between IPFS and Swarm, from a theoretical point of view. In Section 4 we define the criteria of our experiments, outline the environment in which they were conducted and discuss our results both in terms of cost and performance. In the last Section, we gather our conclusions. 
+% TODO: Review
+
+This thesis is divided into six chapters, each designed to navigate the reader through individual aspects of the subject at hand.
+
+The first chapter, Chapter \ref{chapter:introduction}, serves as an introductory overview, providing context about the thesis's topic and structure. It outlines the motivation, methodology, and the contributions of the study.
+
+Chapter \ref{chapter:background} describes the Ethereum blockchain, with a specific emphasis on topics such as gas consumption, the refund mechanism and the Ethereum Improvement Proposals. Furthermore, it presents a thorough analysis of the two distributed file systems leveraged in this thesis, namely IPFS and Swarm, explaining the aspects of the design of the underlying protocols that are involved in data storage and retrieval. Finally, the related work is discussed.
+
+Chapter \ref{chapter:data_management} provides a theoretical perspective on data management in the context of applications that rely on Ethereum and distributed file systems. In this chapter we dive into the principles, techniques, and implications of managing data in such applications, establishing the foundation for the empirical examination that follows.
+
+In Chapter \ref{chapter:experiments} we present the experiments we conducted. Firstly, we outline the experimental setup, explaining the design and evaluation criteria in a detailed manner. Following that, a comprehensive investigation of various data storage approaches on the Ethereum blockchain is presented. To account for scenarios where Ethereum can not accommodate the storage needs of an application, due to increased volume in data, we examine and discuss the implementation of hybrid architectures utilizing IPFS and Swarm. Insights about the cost and performance of such approaches are given.
+
+Chapter \ref{chapter:Conclusion} encapsulates the conclusions drawn from the experiments we conducted. It also outlines potential future extensions to this study, suggesting areas that could benefit from further exploration.
+
+Finally, a collection of bibliographic references is provided at the end of the thesis, allowing readers to investigate the cited resources and gain a more profound understanding of this research.
