@@ -4,8 +4,43 @@ In this section we describe the experimental environment and provide details abo
 \section{Experimental Setup}\label{sec:}
 \subsection{Local experiments}\label{sec:}
 We conducted our experiments on a machine with i7-8700 CPU, 64GB RAM, 2TB SSD running Ubuntu 20.04. All SCs were written and compiled in Solidity 0.8.12 with the optimizer disabled and were deployed on Ropsten Testnet. Geth version 1.10.16 was used as an Ethereum client. For IPFS and Swarm, IPFS-client version 0.7.0 and Swarm Bee Client version 0.5.0 were used, respectively.
-\subsection{Remote Experiments}\label{sec:}
-Grid5000...
+\subsection{Remote Experiments}\label{sec:setup_remote}
+We utilized Grid5000 \citep{bolze_2006}, a robust and versatile platform, for the evaluation of IPFS and Swarm regarding remote retrieval performance. 
+
+Grid5000 is designed to support experiment-driven research in the fields of computer science and networking.
+% a wide variety of research areas including parallel and distributed systems, networking, and cloud computing among others.
+ The grid's infrastructure consists of around 15,000 cores and 800 compute-nodes spread across different sites in France and organized in clusters. It offers a highly controllable computing environment, allowing researchers to run complex experiments on a large scale. These features allowed us to simulate a real-world environment of nodes spread across different geographic regions to thoroughly test the performance of IPFS and Swarm.
+% , and each site hosts clusters of high-performance computing nodes.
+
+% Grid'5000, specializing in computer science research, particularly excels in the realm of parallel and distributed computing, which includes areas like Cloud, High Performance Computing (HPC), Big Data, and Artificial Intelligence (AI).
+\begin{table}[H]
+\centering
+\begin{small}
+\caption{Grid5000's sites and clusters we utilized to conduct our experiments.}
+\label{tab:grid500}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Site & Cluster & Nodes & CPU & Memory & Storage & Network \\ \midrule
+Grenoble & dahu & 32 &  16 cores/CPU & 192 GiB & 720 GB SSD & 10 Gbps + 100 Gbps Omni-Path \\
+& & &  & & + 4.0 TB HDD & \\
+Lille & chetemi & 14 & 10 cores/CPU & 256 GiB & 600 GB HDD & 2 x 10 Gbps (SR‑IOV)  \\
+Nancy & graphite & 4 & 8 cores/CPU & 256 GiB & 600 GB SSD & 10 Gbps (SR‑IOV) + 56 Gbps InfiniBand \\
+Rennes & paravance & 72 & 8 cores/CPU & 128 GiB & 1.2 TB HDD & 	2 x 10 Gbps (SR‑IOV) \\
+Sophia & uvb & 30 & 16 cores/CPU & 96 GiB & 250 GB HDD & 1 Gbps (SR‑IOV) + 40 Gbps InfiniBand  \\
+\bottomrule
+\end{tabular}
+}
+\end{small}
+\end{table}
+
+
+
+Our experimental topology consists of twelve nodes in total, six for IPFS and six for swarm, which were installed in different geographic regions and participated in the respective public networks. Five IPFS and five Swarm nodes were installed in different regions of france on the Grid5000 platform. A distinct site was chosen to set up each node. Table \ref{tab:grid500} provides an overview of the hardware specifications and the geographic region of each site. Additionally, we utilized our machine (degroot), which based in the city of Xanthi in Greece, to host another two nodes. The clients we installed are IPFS Go client v0.16.0 and Bee client v1.16.0.
+
+We used these controlled instances to interact with the public networks of IPFS and Swarm and perform performance-centric experiments. In order to accomplish this, we developed the necessary code-base for coordinating the nodes. Briefly, in every experiment one machine acts as a server that sends instructions to the remaining machines (clients). The clients respond to each instruction accordingly and forward the results back to the server. In our setup, degroot acts both as a client and a server. 
+
+The experiments have a circular flow with x = 6 rounds, where x signifies the number of nodes that participate in each network. Upon each iteration, a node uploads data of varying sizes and broadcasts the resulting content identifiers to the server. The server, in turn, promts the rest of the nodes (clients) to download the data. Each client keeps track of the time it took for the data to arrive and relays the results back to the server. To account for failures due to retrieval timeouts, our code is designed to allow for retries. 
 \section{Criteria}\label{sec:}
 For evaluating the sustainability of using Ethereum as a stand-alone data store, we emphasized on the associated gas cost. In this regard, we thoroughly examined the most common storage methods, the SC storage, and the event-logs. Considering these as reference points, we explored alternatives and cost-wise compared the resulting gas costs. In addition, the implementation complexity of each approach was considered. Our findings are summarized in Table~\ref{table:overall}. Among others, the results confirm that the use of SC storage incurs costs that are orders of magnitude larger than the alternative data stores we examined.
 
@@ -241,39 +276,60 @@ As mentioned in subsection ~\ref{subsection:retrieving_logs}, three bits of the 
 }
 \end{table}
 
-\begin{table*}[!h]
-\begin{scriptsize}
+It is noteworthy that Geth uses LevelDB to manage the blockchain's data. Driven by the fact that most operating systems utilize free RAM memory for caching, we decided to assess how the system’s cache may influence the retrieval performance. In short, recently accessed LevelDB files are cached by the OS and therefore subsequent requests are served faster. So, we repeated our experiments but dropped the page cache between each run, as it is proposed in  \citep{perez_2020}, and gathered the measurements in Table~\ref{tab:retrieve_clear}. This dramatically delayed the retrieval of data from logs when the starting block was set to zero (i.e., beginning of the chain). Basically, when filtering from block zero, a lot of LevelDB files are accessed to find a specific log. The fact that these files are loaded from disk when they are not available in the system’s cache, justifies this delay. On the other hand, since the required disk accesses are greatly reduced when the search is conducted with a more recent starting point, the retrieval latency is not affected to the same extent.
+
+
+
+\begin{table*}[!htb]
+\begin{small}
 \centering
 \caption{Overall comparison of Ethereum's data stores.}
 \label{table:overall}
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{@{}p{0.1\linewidth}p{0.09\linewidth} p{0.09\linewidth}p{0.09\linewidth}p{0.55\linewidth}@{}}
+\begin{tabular}{@{}p{0.14\linewidth}p{0.14\linewidth} p{0.13\linewidth} p{0.13\linewidth} p{0.46\linewidth}@{}}
 \toprule
- &  & \textbf{Storage Cost} & \textbf{Retrieval Latency} & \textbf{Comments} \\* \midrule
-\textbf{Storage} & & Very High  & Very Low & \multirow{3}{8cm}{Viable option only when storing small data. Should host all the data that is essential for the SC's proper operation, since data stored using any of the alternative methods is not accessible within the SC. }\\\\\\\\* \midrule
-\multirow{4}{*}{\textbf{Event-logs}} & \textbf{Non-Indexed}& Low&Moderate &\multirow{4}{8cm}{Suitable for archiving data at a low cost. Filtering specific logs is time consuming but limiting the filtering block-range and exploiting indexed parameters can accelerate the process. Thus, events should be declared according to the DApps' needs, so that %when retrieval performance matters,%
-high latency is avoided.} \\
- & \textbf{Indexed} &Low&Moderate   \\
- & \textbf{Anonymous} & Low & Very High  \\
- & \textbf{Anonymous Indexed} &Low & High   \\* \midrule
-\textbf{Transaction Payload} & \textbf{CA} &Very Low - Moderate& Very Low - Very High & \multirow{3}{8cm}{Least expensive method if the target is an EOA. The transaction hashes must be saved off-chain. In case of transactions to CAs, the cost and the retrieval performance are effected by the manner the SC's fallback is implemented.} \\
-
-% The most cost-efficient method when transactions are targeted to EOAs. Transaction hashes must be saved off-chain. For transactions to CAs cost and retrieval performance are effected by the type of the event emitted in the fallback
-
-\textbf{} & \textbf{EOA} &Very Low& Very Low \\\\* \midrule
-\textbf{Unused functions parameters} & & Very Low  & Very Low - Very High  &\multirow{4}{8cm}{A useful variant of the previous method. Data is essentially stored in the transaction payload but the ABI specification is exploited, facilitating the management of all supported data types. Events can be used for tracking the transaction hashes at the expense of retrieval performance.}\\\\\\* \bottomrule
+& & \textbf{Storage Cost} & \textbf{Retrieval Latency} & \textbf{Comments} \\
+\midrule
+\textbf{Storage} & & Very High & Very Low & Viable option only when storing small data. Should host all the data that is essential for the SC's proper operation, since data stored using any of the alternative methods is not accessible within the SC. \\
+\midrule
+ \textbf{Event-logs} & \textbf{Non-Indexed} & Low & Moderate & \multirow{4}{=}{Suitable for archiving data at a low cost. Filtering specific logs is time consuming but limiting the filtering block-range and exploiting indexed parameters can accelerate the process. Thus, events should be declared according to the DApps' needs, so that high latency is avoided.} \\
+ & \textbf{Indexed} & Low & Moderate & \\
+ & \textbf{Anonymous} & Low & Very High & \\
+ & \textbf{Anonymous Indexed} & Low & High & \\
+ \\
+ \\
+\midrule
+\textbf{Transaction Payload} & \textbf{CA} & Very Low - Moderate & Very Low - Very High & \multirow{4}{=}{Least expensive method if the target is an EOA. The transaction hashes must be saved off-chain. In case of transactions to CAs, the cost and the retrieval performance are affected by the manner the SC's fallback is implemented.} \\
+ & \textbf{EOA} & Very Low & Very Low & \\
+ \\
+ \\
+ \\
+ \\
+\midrule
+\textbf{Unused function parameters} & & Very Low & Very Low - Very High & A useful variant of the previous method. Data is essentially stored in the transaction payload but the ABI specification is exploited, facilitating the management of all supported data types. Events can be used for tracking the transaction hashes at the expense of retrieval performance. \\
+\bottomrule
 \end{tabular}%
-% }
 }
-\end{scriptsize}
+\end{small}
 \end{table*}
 
 To sum up, retrieving logs is time-consuming and imposes an overhead in most of the methods we proposed. However, one can make this compromise considering the cost reduction that these alternatives bring. Apart from that, if managing an external database for storing the transaction hashes is not discouraging, data could be stored in a transaction’s payload or even in unused function parameters, without emitting an event, which imposes an extra cost. By doing so, the cost as well as the retrieval time are reduced substantially.
 
 \section{IPFS \& SWARM}\label{sec:evaluation_dfs}
-The aim of this experiment was to examine the use of IPFS and Swarm alongside Ethereum. We stored data blocks of size 4KB–16MB in these platforms and recorded the resulting identifiers in Ethereum using both SC storage and logs. The cost related to storing these identifiers in Ethereum was examined as well. 
+% TODO: review and add from paper
+The last objective of this work was to examine the use of IPFS and Swarm alongside Ethereum. In order to do so, we conducted a set of experiments which we present in this section. Through these experiments we evaluate the cost and the performance of such an approach.
 
-Details about remote experiments...
+In order to evaluate the cost of hybrid-solutions, we uploaded data to IPFS and Swarm and recorded the generated identifiers in Ethereum. We utilized only SC storage and logs but any of the methods presented in section \ref{sec:evaluation_ethereum} can be used. 
+
+Subsequently, we stored data blocks of size 4KB–16MB in these platforms and measured their local upload and retrieval performances. However, most of the time, content is not available locally and therefore remote retrieval performance must be considered. To clarify, with the term \textit{remote retrieval} we refer to the process of retrieving data that is not stored in the node's local storage and therefore needs to be fetched from the network.
+
+In Subsection \ref{subsection:evaluation_remote}, we evaluate the remote retrieval performance of IPFS and Swarm. First, we outline the scenarios we simulated and then we present and discuss the results that we collected. As part of this discussion, we draw conclusions about which platform performs better under the experimental environment we created (see \ref{sec:setup_remote}).
+
+% In the following we present and discuss the results that we collected during our experiments. As part of this discussion, we draw conclusions about which platform performs better under the experimental environment we created.
+ 
+% In subsection \ref{subsection:evaluation_local} we evaluate  the local upload and retrieval performance of each platform was measured only locally, but both local and remote retrieval performances were examined thoroughly. 
+
+
 \subsection{Storing data identifiers in Ethereum}\label{subsection:evaluation_identifiers}
 In general, the cost of recording content identifiers in Ethereum is consistent due to the constant length of the identifiers. However, in IPFS, using a CID v1 instead of CID v0, will result in higher gas consumption as it requires more storage space. CID v1 format \citep{multiformat}, which will be the default in the near future, consists of four parts
 
@@ -340,441 +396,277 @@ IPFS behaves similarly, except that the size of the data has smaller impact on i
 As we can observe from Fig.~\ref{fig: ipfs_swarm_retrieve}, Swarm lacks in performance when it comes to retrieving data from local storage. That is due to the fact that all chunks split during the upload process must be individually fetched in order to reconstruct the original data. A large number of chunks implies a complex Merkle-Tree or Merkle-DAG. Thus, longer paths have to be resolved until each chunk is found, leading to greater retrieval time. Once again, it is clear that the chunk-size utilized within each platform’s architecture is a determining factor for their performance.
 
 \begin{figure}[htbp]
-\centerline{\includegraphics[width=9cm]{figs/ipfs_swarm_retrieve.pdf}}
+\centerline{\includegraphics[width=\textwidth]{figs/ipfs_swarm_retrieve.pdf}}
 \caption{IPFS-Swarm retrieval latency.}
 \label{fig: ipfs_swarm_retrieve}
 \end{figure}
 \setlength{\belowcaptionskip}{-10pt}
 
 We ought to clarify that by conducting these experiments we meant to compare the performance of IPFS and Swarm, regarding local upload and retrieval. The results are nothing but representative of how these platforms behave when exchanging data between remote nodes. Besides that, Swarm updated its networking protocol from devp2p to libp2p and introduced a new client, which we used during our experiments. The fact that it is in primary stage and improvements are frequently made might render our results obsolete in the near future.
-\subsection{Remote Upload and Retrieval Performance}\label{subsection:evaluation_remote}
+\subsection{Remote Retrieval Performance}\label{subsection:evaluation_remote}
+% TODO: review and remove comments
+
+% \paragraph{Evaluated Scenarios}\label{subsection:remote_experiment_setup}
+% In this subsection we evaluate the remote retrieval performance of IPFS and Swarm. With the term \textit{remote retrieval} we refer to the process of retrieving data that is not stored in the node's local storage and therefore needs to be fetched from the network. 
+
+% First, we outline the set of experiments that we conducted. Then we present and discuss the results that we collected during our experiments. As part of this discussion, we draw conclusions about which platform performs better under the experimental environment we created.
+% The simulated scenarios intend to cover a wide range of real-world situations that a user may encounter when retrieving content from platforms such as IPFS and Swarm. For instance, there desired data is immediately accessible from a directly connected peer. Alternatively, it might be cached by a nearby node other than the original uploader, thereby eliminating the need for a complete DHT query. 
+To evaluate the retireval performance of IPFS and Swarm we simulate a wide range of real-world situations that a user may encounter when retrieving content from these platforms. For instance, the requested data is immediately accessible from a directly connected peer. Alternatively, it might be cached by a nearby node other than the original uploader, thereby eliminating the need for a complete DHT query. 
+
+% In brief, we utilized our experimental setup to simulate the following four different scenarios:
+We study the following four different scenarios:
+
+\begin{itemize}[itemsep=0pt]
+    \item  \textbf{simple}: For each round one node uploads a series of content, which is then downloaded by the remaining nodes. Given that the content is replicated amongst the nodes that download it, all nodes - except from the first one - that download it could potentially retrieve the content from a node other than the original uploader in case of IPFS or responsible storer nodes in the context of swarm.
+    \item \textbf{no-cache}: For each round one node uploads a series of content and the rest of the nodes download it. Each downloader, after getting the content removes it from local storage. Regarding IPFS, this ensures that content is always retrieved from the uploader. In case of Swarm it ensures that the content isn't cached and therefore cannot be provided by the nodes that have already downloaded it.
+    \item  \textbf{disconnect}: For each round, a single node uploads a series of content and the remaining nodes download it. Since the connection with the uploader isn't terminated instantly, the downloader - upon successfully retrieving the content - disconnects from the peer (uploader) from which the content was obtained. 
+    \item \textbf{no-cache-disconnect}: Similar procedure to \textit{no-cache}, but the downloader - upon successfully retrieving the content - disconnects from the peer from which the content was obtained. Regarding IPFS, this ensures that content is always retrieved from the uploader and the nodes. In case of Swarm it ensures that the content isn't cached and therefore cannot be provided by the nodes that have already downloaded it.
+\end{itemize}
+
+% These scenarios were designed to cover most of the realistic cases a user might experience while retrieving content from a platform like IPFS ans Swarm. For instance, sometimes the requested data might be available in a direct peer and be fetched immediately. In other cases, a nearby node other than the uploader might have cached the data thus returning it back. 
+
+We tested these cases repeatedly in multi-round experiments as discussed in the experimental setup section \ref{sec:setup_remote}
+The corresponding results can either be presented as a total to give an overview of the interaction with IPFS and Swarm, or separately for each scenario.
+%  \hl{...} 
+% Our third dataset focuses on benchmarking content publication and retrieval performance. We use six virtual machines in six different regions on AWS. Namely, the t2.small machines run in me_south_1 (Bahrain), ap_southeast_2 (Sydney), af_south_1 (Cape Town), us_west_1 (N. California), eu_central_1 (Frankfurt) and sa_east_1 (São Paulo). On each machine we run a go-ipfs v0.10.0 instance acting as a DHT server node. We use these controlled instances to interact with the public IPFS network and per form tailored performance experiments
+
+% Upon each iteration, a single node announces a new 0.5MB object (i.e., CID) to the network. Following this, all other nodes retrieve the object. This involves looking up the provider and peer records, connecting to the providing peer and then downloading the object. As soon as all remaining nodes have completed this process, they disconnect to prevent the next retrieval operation being resolved through Bitswap and instead resort to the DHT for lookup and discovery. It is worth noting that this is the closest one can get to a controlled experiment in the public IPFS network. This is because it
 
 \begin{table}[H]
 \centering
 \begin{small}
 \caption{Accumulated measurements for IPFS. The dataset consists of 3990 samples in total (including failures), with retrieval failure ratio of $\sim 30\%$ }
-\begin{tabular}{@{}lcccccc@{}}
-\toprule
-Size & Mean & Median & Skewness & Min & Max & Sample Size \\ \midrule
-4KB & 876.96 & 177.07 & 7.06 & 6.99 & 29391.19 & 415\\
-16KB & 691.94 & 148.4 & 7.82 & 3.13 & 29803.37 & 390\\
-64KB & 1031.23 & 215.52 & 6.47 & 3.32 & 29352.31 & 384\\
-256KB & 751.66 & 273.82 & 10.53 & 38.86 & 30001.96 & 400\\
-1MB & 959.27 & 315.87 & 8.88 & 9.67 & 27258.05 & 410\\
-4MB & 1126.27 & 449.5 & 7.03 & 99.65 & 27082.3 & 412\\
-16MB & 1807.24 & 1271.9 & 5.29 & 297.5 & 26714.33 & 398\\
-\bottomrule
-\end{tabular}
-\end{small}
-\end{table}
-
-\begin{table}[H]
-\centering
-\begin{small}
-\caption{Accumulated measurements for IPFS without outliers.}
+\label{tab:ipfs_all}
 \begin{tabular}{@{}lccccccc@{}}
 \toprule
-Size & Mean & Median & Skewness & Min & Max & Sample Size & Outliers \\ \midrule
-4KB & 146.85 & 145.64 & 0.31 & 6.99 & 394.83 & 326 & 89\\
-16KB & 113.8 & 141.63 & -0.32 & 3.13 & 243.88 & 328 & 62\\
-64KB & 153.98 & 158.9 & 0.67 & 3.32 & 655.62 & 295 & 89\\
-256KB & 210.55 & 174.56 & 1.4 & 38.86 & 891.33 & 318 & 82\\
-1MB & 737.98 & 310.51 & 1.49 & 9.67 & 3600.76 & 391 & 19\\
-4MB & 564.25 & 415.7 & 1.82 & 99.65 & 2399.45 & 363 & 49\\
-16MB & 1359.79 & 1216.78 & 1.21 & 297.5 & 4592.43 & 369 & 29\\
+Size & Mean & Median & IQR & Skewness & Min & Max & Sample Size \\ \midrule
+4KB & 876.96 & 177.07 & 226.28 & 7.06 & 6.99 & 29391.19 & 415\\
+16KB & 691.94 & 148.4 & 128.63 & 7.82 & 3.13 & 29803.37 & 390\\
+64KB & 1031.23 & 215.52 & 251.2 & 6.47 & 3.32 & 29352.31 & 384\\
+256KB & 751.66 & 273.82 & 362.55 & 10.53 & 38.86 & 30001.96 & 400\\
+1MB & 959.27 & 315.87 & 1393.61 & 8.88 & 9.67 & 27258.05 & 410\\
+4MB & 1126.27 & 449.5 & 942.13 & 7.03 & 99.65 & 27082.3 & 412\\
+16MB & 1807.24 & 1271.9 & 1606.68 & 5.29 & 297.5 & 26714.33 & 398\\
 \bottomrule
 \end{tabular}
 \end{small}
 \end{table}
-
-
-
 
 \begin{table}[H]
 \centering
 \begin{small}
 \caption{Accumulated measurements for Swarm. The dataset consists of 2795 samples in total (including failures), with retrieval failure ratio of $\sim 8.5\%$ }
-\begin{tabular}{@{}lcccccc@{}}
-\toprule
-Size & Mean & Median & Skewness & Min & Max & Sample Size \\ \midrule
-4KB & 67.32 & 52.38 & 2.06 & 1.19 & 420.3 & 395\\
-16KB & 226.24 & 202.78 & 0.78 & 2.66 & 794.08 & 395\\
-64KB & 352.05 & 321.35 & 0.94 & 3.32 & 1194.75 & 395\\
-256KB & 506.17 & 469.51 & 0.71 & 4.69 & 1484.6 & 395\\
-1MB & 1262.27 & 1211.74 & 0.07 & 10.56 & 2673.54 & 400\\
-4MB	& 3538 & 3497.82 & -0.59 & 34.05 & 7884.58 & 404\\
-16MB & 9555.86 & 9047.49 & 1.83 & 5822.69 & 20503.51 & 169\\
-\bottomrule
-\end{tabular}
-\end{small}
-\end{table}
-
-\begin{table}[H]
-\centering
-\begin{small}
-\caption{Accumulated measurements for Swarm without outliers.}
+\label{tab:swarm_all}
 \begin{tabular}{@{}lccccccc@{}}
 \toprule
-Size & Mean & Median & Skewness & Min & Max & Sample Size & Outliers \\ \midrule
-4KB & 43.66 & 50.49 & 0.74 & 1.19 & 182.76 & 356 & 39\\
-16KB & 218.75 & 196.73 & 0.58 & 2.66 & 662.08 & 389 & 6\\
-64KB & 330.4 & 319.61 &	0 & 3.32 & 677.07 & 380 & 15\\
-256KB & 483.43 & 465.3 & 0.04 & 4.69 & 978.37 & 381 & 14\\
-1MB & 1276.7 & 1217.82 & 0.65 & 675.32 & 2259.57 & 378 & 22\\
-4MB & 3623.02 & 3520.14 & 0.5 & 2165.56 & 5889.15 & 387 & 17\\
-16MB & 9037.03 & 8914.55 & 0.46 & 5822.69 & 14261.94 & 159 & 10\\
+Size & Mean & Median & IQR & Skewness & Min & Max & Sample Size \\ \midrule
+4KB & 67.32 & 52.38 & 72.62 & 2.06 & 1.19 & 420.3 & 395\\
+16KB & 226.24 & 202.78 & 225.53 & 0.78 & 2.66 & 794.08 & 395\\
+64KB & 352.05 & 321.35 & 185.17 & 0.94 & 3.32 & 1194.75 & 395\\
+256KB & 506.17 & 469.51 & 248.64 & 0.71 & 4.69 & 1484.6 & 395\\
+1MB & 1262.27 & 1211.74 & 512.95 & 0.07 & 10.56 & 2673.54 & 400\\
+4MB & 3538 & 3497.82 & 1191.13 -& 0.59 & 34.05 & 7884.58 & 404\\
+16MB & 9555.86 & 9047.49 & 2609.57 & 1.83 & 5822.69 & 20503.51 & 169\\
 \bottomrule
 \end{tabular}
 \end{small}
 \end{table}
 
 
+% In your case, if outliers represent extreme performance instances (e.g., extremely fast or slow retrieval times) that are not representative of typical performance, it may be appropriate to remove them. Reporting metrics both before and after this process allows you to demonstrate the impact of this decision and to provide a more accurate representation of general performance patterns.
+Tables \ref{tab:ipfs_all} and \ref{tab:swarm_all} are snapshots of the overall retrieval latency encountered during the experiments we conducted. The minimum and maximum values observed represent extreme performance instances (e.g., extremely fast or slow retrieval times) that are not representative of typical performance. In IPFS such low latency suggests that content is fetched from a directly connected peer using the Bitswap protocol, rather than through a DHT query. Conversely, our Swarm nodes may have already cached the content, if they were part of the forwarding path from the uploader to the neighborhood of responsibility. Latency in this cases, aligns with the local retrieval performance we discussed in section \ref{subsection:evaluation_local}
+
+In addition, the measurements that we obtained are greatly skewed towards higher latency levels and demonstrate a substantial degree of dispersion, as indicated by the Skewness and IQR metrics. For a better comprehension of the particular data set's distribution, refer to Appendix A.
+% TODO: add reference
+%  \ref{chapter:appendix}. 
+
+Most of the datasets we compiled  exhibit similar distributions, especially those regarding IPFS. In view of this, we applied the Inter Quartile Range formula to detect and remove outliers in all data sets. We opted for this method as it is better suited for skewed data with and isn't affected by outliers \citep{whaley_2005}. Part of the processed measurements is included in Appendix A. Upon examining the cleansed results, we conclude that the median even prior to removing the outliers is a reliable measure of central tendency.  Consequently, we refer to the median of the original measurements throughout this section.
+
+The results we gather indicate that the chunk-size utilized within each platform’s architecture is a determining factor for their performance. As the size of the data increases, performance deteriorates substantially. Overall, for small data up to 4KB (one swarm-chunk) Swarm is notably more efficient. Then both platforms perform equally for data of 256KB or lower, but above this IPFS outperforms its counterpart.
+
+However, it's important to take into account that large content in Swarm is fetched from multiple different nodes, potentially hundreds, that need to be discovered separately. The fact that even for 16MB data it takes about nine seconds for a complete retrieval and reconstruction, implies that Swarm's DISC model and routing approach is indeed effective. In a similar scenario, case IPFS requires approximately 1.2 seconds to locate a single node, establish a connection (if not already present) and retrieve the content. So, in cases where a large data set that consists of numerous chunks not hosted by a single node, PFS might actually exhibit slower performance compared to Swarm. 
+
+% The measurements presented in Fig. 4.11, indicate that uploading data up to 256KB in Swarm is quite fast. Above this threshold, performance deteriorates substantially. We must consider that data are split into chunks which are hashed and organized in a Binary Merkle Tree. Obviously, the number of calculations included in this process is proportional to the size of the data and definitely affects the upload-time. IPFS behaves similarly, except that the size of the data has smaller impact on its
+
+% performance. This mostly stems from the fact that chunk’s default size (256KB) in IPFS is 64 times the size of a Swarm chunk (4KB), rendering the process of splitting the data and organizing the chunks in a Merkle-Dag faster. Accordingly, the quite
+% stable measurements for data up to 256KB are justified, as they fit in one chunk.
 
 \begin{table}[H]
 \centering
-\begin{small}
-\caption{Accumulated measurements for each experiment in IPFS without outliers.}
+\caption{Accumulated measurements for the hosts participating in the experiments (IPFS).}
+\label{tab:hosts_ipfs}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+Host    & \multicolumn{7}{c}{Data Size}          & Failures (\%) \\ \midrule
+& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb              \\ \midrule
+degroot & 242.18 & 170.23 & 249.04 & 313.59 & 385.42 & 516.34 & 1499.17 & 6.5 \\
+nancy & 144.66 & 140.35 & 153.46 & 155.1 & 306.77 & 376.46 & 1095.44 & 21 \\
+lille  & 130.76 & 123.73 & 175.87 & 201.17 & 272.27 & 464.68 & 1098.98 & 44 \\
+grenoble  & 143.28 & 142.05 & 157.99 & 168.82 & 304.62 & 389.84 & 997.39 & 36 \\
+rennes  & 147.11 & 134.58 & 151.39 & 166.05 & 198.18 & 409.78 & 944.75 & 31 \\
+sophia  & 159.15 & 153.47 & 198.03 & 216.53 & 243.13 & 449.6 & 1331.35 & 38 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+
+\begin{table}[H]
+\centering
+\caption{Accumulated measurements for the hosts participating in the experiments (Swarm).}
+\label{tab:hosts_swarm}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+Host    & \multicolumn{7}{c}{Data Size}          & Failures (\%) \\ \midrule
+& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb              \\ \midrule
+degroot & 106.78 & 356.69 & 455.06 & 659.04 & 1718.43 & 4606.77 & 11706.08 & 9 \\
+nancy & 50.22 & 121.62 & 302.14 & 422.94 & 1141.65 & 3220.77 & 7399.17 & 9 \\
+lille  & 31.63 & 62.44 & 267.23 & 365.31 & 976.45 & 2855.04 & 8544.81 & 8 \\
+grenoble  & 52.5 & 185.15 & 312.46 & 476.18 & 1183.72 & 3485.26 & 9405.18 & 8 \\
+rennes  & 53.18 & 129.48 & 313.64 & 439.33 & 1056.81 & 3412.36 & 8631.65 & 8 \\
+sophia  & 62.76 & 266.15 & 339.32 & 510.98 & 1244.26 & 3528.51 & 9677.73 & 9 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+Consulting table \ref{tab:hosts_ipfs}, we deduce that our machine (degroot) requires more time to retrieve the data from the remaining hosts. This is expected if we take into account the topology described in section \ref{sec:setup_remote}. The node running in our machine always needs to interact with nodes located in france. On the contrary, nodes within the Grid5000 download a series of content from our node in Greece only in one round of each experiment. The distance of the physical underlying connection in the former case impacts IPFS's retrieval performance.
+
+% The same applies to swarm,
+
+The geographical distribution of nodes is also an important factor in Swarm, but it influences performance differently than in IPFS. It is not the topology that we created that affects performance, but the geographical location of the peers we are connected to and the overall topology of the testnet where we perform the experiments. 
+
+Please note that content may be uploaded by our nodes, but is then distributed evenly across nodes in the network, which in turn serve it.
+% stored and served by nodes that are evenly spread in the network.
+% uniformly distributed in the overlay address space
+% , i.e. evenly  
+However, as we can see in fig \ref{fig:swarm_peers}, our node isn't connected to any peers in close proximity. Most of its peers are located in central and northern regions of Europe. Thus, for each download request a lond distance connection must be established, justifying the inferior performance of our machine reflected in table \ref{tab:hosts_swarm}.
+
+% Hence, the geographical distribution of nodes in such networks contributes to performance, mainly due to the distance of the physical underlying connections.
+
+% As a result of uniformity, a random set of chunked content will generate addresses evenly spread in the address space, i.e. imposing storage requirements balanced among nodes.
+% Assuming any sample of base accounts independently selected, the resulting overlay addresses are expected to have a uniform distribution in the address space of 256-bit integers
+% chunks are stored with nodes close to their address, fair and equal load balancing requires that the addresses of chunks should also be uniformly distributed in the address space, and have their content limited and roughly uniform in size.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=\textwidth]{figs/swarm_peers.pdf}}
+\caption{Peers of our Swarm node hosted in our machine.}
+\label{fig:swarm_peers}
+\end{figure}
+
+Moreover, based on table \ref{tab:hosts_ipfs} we can infer that all hosts we established within Grid5000 experience frequent retrieval failures. Approximately 30\% - 40\% of the retrieval requests are unsuccessful, despite implementing a re-try mechanism to avoid such phenomenons (by default clients make three download attempts before aborting). This implies a connectivity issue, possibly due to the Grid5000's closed network, which hinders peer communication among the IPFS nodes we set up. Nodes inside Grid5000 are mostly visible to the outside world, as suggested by the low failure ratio of our machine, yet less visible to each other.
+
+Networking issues were also encountered with the server-client system we developed. During the experiments, the clients running within the Grid5000 platform occasionally lost connection with the server (hosted in degroot), for a short period of time, after which they reconnected. To compensate for this, we developed a caching mechanism that enabled the server to coordinate the experiments effectively in case of reconnections or even if an experiment is terminated and restarted at a later time.
+
+Unfortunately, even though certain measures were taken, such as increasing the retrieval timeout as much as 90 seconds and the retry parameter to 5, we were unable to resolve the connectivity issues in the IPFS-related experiments. However, in order to confirm our suspicions we performed the same experiments using our machine, an older machine we possess, and one host in Grid5000. Indeed, our machines demonstrate better retrieval success ratios (see table \ref{tab:miletus_degroot_nancy}).
+
+The issue we've outlined might lower, to some extent, the overall quality of our measurements but yielded a valuable insight. That is, Swarm provides a more robust infrastructure that is resilient to networking issues. As observed in table \ref{tab:hosts_swarm}, the success ratio of retrievals in Swarm is higher. It seems that the content replication facilitated by the DISC storage model and  the consistency of the replication ensured by the pull-sync protocol even in high churn situations (refer to section \ref{subsection:swarm} for details) contribute to its more stable performance. 
+
+In addition to that, Swarm's routing approach to relay requests from source to destination via peers that retain an open connection (direct peers) and then returning the response backwards through the same path, also alleviates connectivity issues. That is because the requestor only need to interact with a single peer, with whom it is already connected.
+
+% \begin{figure}[htbp]
+% \centerline{\includegraphics[width=\textwidth]{figs/ipfs_peers.png}}
+% \caption{EIP standardization process.}
+% \label{fig:ipfs_peers}
+% \end{figure}
+
+% \begin{table}[H]
+% \centering
+% \begin{small}
+% \caption{Accumulated measurements for experiment \textit{simple} in IPFS. The dataset consists of 1050 samples in total (including failures), with retrieval failure ratio of $\sim 4\%$ }
+% \label{tab:normal}
+% \begin{tabular}{@{}lccccccc@{}}
+% \toprule
+% Size & Mean & Median & IQR & Skewness & Min & Max & Sample Size \\ \midrule
+% 4KB & 472.96 & 211.66 & 109.01 & 3.69 & 30.04 & 5408.44 & 140\\
+% 16KB & 135.24 & 150.64 & 28.92 & -1.06 & 30.90 & 203.29 & 143\\
+% 64KB & 176.44 & 175.63 & 90.05 & -0.19 & 34.75 & 382.46 & 143\\
+% 256KB & 247.11 & 239.92 & 161.51 & 1.17 & 38.85 & 712.93 & 145\\
+% 1MB & 514.83 & 234.93 & 202.04 & 11.63 & 52.27 & 27258.04 & 146\\
+% 4MB & 635.02 & 431.22 & 246.71 & 2.64 & 103.36 & 3260.39 & 145\\
+% 16MB & 1797.22 & 1306.89 & 688.50 & 2.70 & 338.36 & 9525.16 & 144\\
+% \bottomrule
+% \end{tabular}
+% \end{small}
+% \end{table}
+
+
+\begin{table}[H]
+\centering
+\caption{Accumulated measurements for each experiment in IPFS.}
+\label{tab:experiments_ipfs}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}lcccccccc@{}}
 \toprule
 Experiment    & \multicolumn{7}{c}{Data Size}          & Failures (\%) \\ \midrule
 & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb              \\ \midrule
-normal & 199.88 & 154.76 & 171.33 & 194.54 & 212.07 & 402.53 & 1209.93 & 4 \\
-no-cache  & 160.85 & 51.96 & 72.66 & 97.88 & 116.75 & 195.59 & 638.54 & 24 \\
-disconnect  & 135.36 & 124.72 & 1168.58 & 310.82 & 1360.46 & 469.56 & 1275.26 & 37 \\
-no-cache-disconnect  & 151.11 & 163.59 & 263.22 & 313.85 & 1758.96 & 759.66 & 1801.96  & 53 \\
+simple &  211.67 & 150.65 & 175.64 & 239.92 & 234.94 & 431.22 & 1306.9 & 4 \\
+no-cache  & 218.6 & 123.72 & 72.86 & 97.88 & 116.75 & 198.57 & 638.54 & 24 \\
+disconnect  & 144.2 & 139.67 & 1264.5 & 335.85 & 1360.46 & 494.24 & 1363.14 & 37 \\
+no-cache-disconnect  & 159.82 & 180.53 & 266.43 & 375.63 & 1758.96 & 1114.13 & 1805.09 & 53 \\
 \bottomrule
 \end{tabular}
-\end{small}
+}
 \end{table}
 
 \begin{table}[H]
 \centering
-\begin{small}
-\caption{Accumulated measurements for each experiment in Swarm without outliers.}
+\caption{Accumulated measurements for each experiment in Swarm.}
+\label{tab:experiments_swarm}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}lcccccccc@{}}
 \toprule
 Experiment    & \multicolumn{7}{c}{Data Size}          & Failures (\%) \\ \midrule
 & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb              \\ \midrule
-normal & 35.91 & 207.6 & 302.56 & 475.75 & 1126.42 & 3727.21 & 9815.11 & 9 \\
-no-cache  & 50.49 & 258.35 & 314.25 & 467.14 & 1206.17 & 3418.18 & 8391.32 & 9 \\
-disconnect  & 52.21 & 179.63 & 344.74 & 467.44 & 1247.89 & 3507.51 & 8713.88 & 7 \\
-no-cache-disconnect  & 51.54 & 152.27 & 327.29 & 441.47 & 1208.57 & 3497.87 & 8567 & 10 \\
+simple & 51.22 & 212.43 & 307.71 & 481.13 & 1135.82 & 3563.81 & 9936.54 & 9 \\
+no-cache  & 50.5 & 258.35 & 312.94 & 505.05 & 1212.22 & 3431.22 & 8391.32 & 9 \\
+disconnect  & 52.5 & 183.78 & 351.1 & 467.8 & 1261.19 & 3507.51 & 8713.88 & 7 \\
+no-cache-disconnect  & 53.43 & 152.27 & 328.79 & 447.65 & 1218.1 & 3514.01 & 8567 & 10 \\
 \bottomrule
 \end{tabular}
-\end{small}
+}
 \end{table}
 
 
+The measurements for IPFS and Swarm regarding the simulated scenarios we outlined in the begging of this section, have been accumulated in tables \ref{tab:experiments_ipfs} and \ref{tab:experiments_swarm}, respectively. It is clear that retrieval performance as well as the failure ratio in Swarm is similar in all cases. This is expected as data uploaded to Swarm is stored and served by nodes that are responsible for it. Therefore, preventing our nodes from caching the content or disconnecting from the original uploader has no affect in the ability of the storer nodes to provide the content. 
+% The only thing we can ensure with the nodes we control..
 
-\begin{table}[H]
-\centering
-\begin{small}
-\caption{IPFS: accumulated measurements for our machine (degroot). The dataset consists of 665 samples in total (including failures), with retrieval failure ratio of $\sim 6.5\%$ }
-\begin{tabular}{@{}lcccccc@{}}
-\toprule
-Size & Mean & Median & Skewness & Min & Max & Sample Size \\ \midrule
-4KB & 1421.16 & 242.18 & 1.18 & 139.82 & 5819.67 & 88\\
-16KB & 1065.02 & 170.23 & 2.54 & 128.68 & 10072.69 & 86\\
-64KB & 1308.95 & 249.04 & 3.58 & 131.93 & 14766.25 & 87\\
-256KB & 981.47 & 313.59 & 1.89 & 143.75 & 5293.09 & 90\\
-1MB & 1249.65 & 385.42 & 1.22 & 195.49 & 5071.64 & 89\\
-4MB & 1799.89 & 516.34 & 4.38 & 337.33 & 21345.4 & 93\\
-16MB & 2476.33 & 1499.17 & 1.72 & 995.34 & 9461.04 & 89\\
-\bottomrule
-\end{tabular}
-\end{small}
-\end{table}
+On the contrary, in IPFS we observe great variability in the failure ratio throughout the experiments. In the first scenario where content can be downloaded either from the original uploader or from any of the remaining nodes that have already downloaded the content, most of the retrieval requests are successful. In the second scenario where it can be provided exclusively by the node that uploaded it, we see a drop in the success ratio. This suggests, that nodes within the Grid5000 exhibit better connectivity with our machine rather than among themselves. Simply put,  after a successful interaction with our machine, they register it as a peer, retain the connection and proceed to download content from it (instead of the original uploader) in the subsequent rounds. This phenomenon doesn't occur in the second scenario since our machine clears its cache, removing the data.
 
-\begin{table}[H]
-\centering
-\begin{small}
-\caption{IPFS: accumulated measurements for Lille site. The dataset consists of 665 samples in total (including failures), with retrieval failure ratio of $\sim 44\%$ }
-\begin{tabular}{@{}lcccccc@{}}
-\toprule
-Size & Mean & Median & Skewness & Min & Max & Sample Size \\ \midrule
-4KB & 556.61 & 130.76 & 5.58 & 33.68 & 10806.75 & 56\\
-16KB & 199.35 & 123.73 & 4.32 & 28.48 & 2182.87 & 51\\
-64KB & 485.99 & 175.87 & 2.23 & 40.17 & 3269.44 & 52\\
-256KB & 491.22 & 201.17 & 2.25 & 49.33 & 3402.34 & 52\\
-1MB & 1325.06 & 272.27 & 6.46 & 58.97 & 27258.05 & 55\\
-4MB & 1298.11 & 464.68 & 6.03 & 108.31 & 22407.71 & 54\\
-16MB & 1618.79 & 1098.98 & 2.91 & 304.16 & 9793.04 & 52\\
-\bottomrule
-\end{tabular}
-\end{small}
-\end{table}
+% However, \hl{as we discuss later in this section}, all nodes within the Grid5000 exhibit better connectivity with our machine rather than among themselves. So after a successful interaction with our machine, they register it as a peer, retain the connection and proceed to download content from it in the subsequent rounds. This phenomenon doesn't occur in the second scenario since our machine clears its cache, removing the data.
+
+% These  findings suggest that \hl{within our experimental environment,} data retrieval is more successful from a direct peer that has cached the content, hence, the increased failures in the second case. Note that in both cases the connection with the uploader isn't forcibly ended and that all nodes interact at least once with each other. However, \hl{as we discuss later in this section}, all nodes within the Grid5000 exhibit better connectivity with our machine rather than amongs themselves. So after a successful interaction with our machine, they register it as a peer, retain the connection and proceed to download content from it in the subsequent rounds. This phenomenon doesn't occur in the second scenario since our machine clears its cache, removing the data.
+
+The two remaining scenarios seem to adhere to the same rationale. Moreover, in every round, the downloader intentionally disconnect from the uploader, thus decreasing the set of potential peers that may have cached the content. 
+% \hl{More importantly, they disconnect from our node when it acts as an uploader}. 
+As a result, about 37\% and 53\% of the retrieval requests fail in the third and fourth scenarios, respectively.
+
+% As for the retrieval latency, no exceptional divergence is observed. 
+Earlier in this section, we mentioned our concerns about the results being affected by the connectivity issues we discussed. Thus we do not proceed to make any assumptions regarding the retrieval latency. The conclusion drawn from this set of results is that in a less-than-ideal connectivity environment like ours, the smaller the pool of potential content providers the more the retrieval process is impeded.
+
+% by limiting the set of connected peers of 
+% The only insight that the measurements provide is that the latency increases in parallel to the data size. Earlier in this section, we mentioned our concerns about the results so we will not proceed to make any assumptions.
+
+% Specifically, all nodes within the Grid5000 seem to exhibit better connectivity with our machine rather than amongst themselves. Consequently, following a successful interaction with our machine, they register it as a peer, maintain the connection, and proceed to download content from it. This phenomenon doesn't occur in the second scenario since our machine (degroot) clears its cache, removing the data. This difference is discussed further in the following sections.
+
+% In the first two scenarios, performance is slightly higher for 4kB, then drops and increases in parallel to the data size. Th
 
 
 
 
 
-\begin{table}[H]
-\centering
-\begin{small}
-\caption{Swarm: accumulated measurements for our machine (degroot). The dataset consists of 458 samples in total (including failures), with retrieval failure ratio of $\sim 9\%$ }
-\begin{tabular}{@{}lcccccc@{}}
-\toprule
-Size & Mean & Median & Skewness & Min & Max & Sample Size \\ \midrule
-4KB & 125.64 & 106.78 & 1.13 & 1.19 & 375.95 & 65\\
-16KB & 355.39 & 356.69 & 0.35 & 6.21 & 731.93 & 65\\
-64KB & 506.36 & 455.06 & 0.8 & 6.14 & 1034.46 & 65\\
-256KB & 701.1 & 659.04 & 0.52 & 10.05 & 1484.6 & 65\\
-1MB & 1752.64 & 1718.43 & -0.5 & 16.36 & 2673.54 & 65\\
-4MB & 4703.53 & 4606.77 & -1.05 & 39.54 & 7884.58 & 66\\
-16MB & 12671.97 & 11706.08 & 0.8 & 8623.28 & 18851.85 & 25\\
-\bottomrule
-\end{tabular}
-\end{small}
-\end{table}
-
-\begin{table}[H]
-\centering
-\begin{small}
-\caption{Swarm: accumulated measurements for Lille site. The dataset consists of 474 samples in total (including failures), with retrieval failure ratio of $\sim 8\%$ }
-\begin{tabular}{@{}lcccccc@{}}
-\toprule
-Size & Mean & Median & Skewness & Min & Max & Sample Size \\ \midrule
-4KB & 31.59 & 31.63 & 4.54 & 2.41 & 398.32 & 67\\
-16KB & 129.7 & 62.44 & 1.51 & 3.38 & 515.84 & 67\\
-64KB & 262.84 & 267.23 & 0.09 & 3.72 & 588.63 & 67\\
-256KB & 384.88 & 365.31 & 0.45 & 5.01 & 811.72 & 67\\
-1MB & 991.81 & 976.45 & -0.61 & 10.82 & 1796.9 & 68\\
-4MB & 2874.76 & 2855.04 & -1.46 & 34.05 & 4680.03 & 68\\
-16MB & 8463.23 & 8544.81 & -0.14 & 5822.69 & 10991.23 & 30\\
-\bottomrule
-\end{tabular}
-\end{small}
-\end{table}
 
 
 
 
 
-\begin{table}[H]
-\centering
-\begin{small}
-\caption{Accumulated measurements for each experiment in Swarm without outliers (degroot-miletus-nancy).}
-\begin{tabular}{@{}lcccccccc@{}}
-\toprule
-Experiment    & \multicolumn{7}{c}{Data Size}          & Failures (\%) \\ \midrule
-& 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb              \\ \midrule
-normal & 188.38 & 149.39 & 158.54 & 167.08 & 292.41 & 461.01 & 1816.65 & 0 \\
-no-cache  & 146.06 & 141.99 & 143.93 & 152.68 & 261.62 & 524.04 & 1955.46 & 3 \\
-disconnect  & 189.47 & 306.23 & 1252.18 & 1281.77 & 1751.59 & 1458.82 & 3536.62 & 12 \\
-no-cache-disconnect  & 198.14 & 170.18 & 1230.74 & 372.82 & 1961.7 & 2011.86 & 3162.53 & 27 \\
-\bottomrule
-\end{tabular}
-\end{small}
-\end{table}
-
-% Please add the following required packages to your document preamble:
-% \usepackage{booktabs}
-% \begin{table}[H]
-% \caption{Table for experiment disconnect}
-% \begin{tabular}{@{}lcccccccc@{}}
-% \toprule
-% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb              \\ \midrule
-% chetemi-9.lille  & 612  & 282  & 1010  & 891  & 1679  & 2264  & 1929  & 16 \\
-% dahu-32.grenoble  & 146  & 456  & 2133  & 679  & 1065  & 857  & 1158  & 16 \\
-% degroot  & 1933  & 2014  & 2192  & 1622  & 1892  & 2639  & 3028  & 30 \\
-% graphite-4.nancy  & 835  & 1352  & 1868  & 723  & 1305  & 1440  & 1980  & 24 \\
-% paravance-51.rennes  & 1097  & 2360  & 4096  & 2835  & 1403  & 2882  & 1874  & 18 \\
-% uvb-9.sophia  & 425  & 617  & 3902  & 1056  & 1228  & 779  & 1796  & 16 \\
-% \bottomrule
-% \end{tabular}
-% \end{table}
-
-% % Please add the following required packages to your document preamble:
-% % \usepackage{booktabs}
-% \begin{table}[H]
-% \caption{Table for experiment do-not-cache}
-% \begin{tabular}{@{}lcccccccc@{}}
-% \toprule
-% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-% chetemi-9.lille  & 1560  & 80  & 96  & 120  & 133  & 433  & 574  & 8 \\
-% dahu-9.grenoble  & 1189  & 261  & 111  & 134  & 142  & 228  & 602  & 8 \\
-% degroot  & 1457  & 162  & 1349  & 293  & 344  & 482  & 1374  & 13 \\
-% graphite-1.nancy  & 980  & 70  & 100  & 134  & 139  & 221  & 611  & 11 \\
-% paravance-8.rennes  & 2564  & 69  & 101  & 130  & 150  & 214  & 555  & 11 \\
-% uvb-9.sophia  & 3788  & 1441  & 104  & 148  & 164  & 262  & 798  & 8 \\
-% \bottomrule
-% \end{tabular}
-% \end{table}
-
-% % Please add the following required packages to your document preamble:
-% % \usepackage{booktabs}
-% \begin{table}[H]
-% \caption{Table for experiment do-not-cache-disconnect}
-% \begin{tabular}{@{}lcccccccc@{}}
-% \toprule
-% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-% chetemi-9.lille  & 83  & 485  & 1033  & 1122  & 1164  & 2281  & 1549  & 4 \\
-% dahu-32.grenoble  & 707  & 992  & 895  & 1144  & 1627  & 983  & 1713  & 7 \\
-% degroot  & 1407  & 1441  & 1552  & 1605  & 1925  & 3428  & 2802  & 16 \\
-% graphite-4.nancy  & 743  & 2391  & 686  & 710  & 2416  & 693  & 2042  & 8 \\
-% paravance-51.rennes  & 667  & 938  & 288  & 592  & 1351  & 988  & 1194  & 7 \\
-% uvb-9.sophia  & 103  & 499  & 1760  & 895  & 2538  & 1274  & 2691  & 4 \\
-% \bottomrule
-% \end{tabular}
-% \end{table}
-
-% % Please add the following required packages to your document preamble:
-% % \usepackage{booktabs}
-% \begin{table}[H]
-% \caption{Table for experiment normal}
-% \begin{tabular}{@{}lcccccccc@{}}
-% \toprule
-% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-% chetemi-9.lille  & 308  & 139  & 186  & 257  & 1549  & 519  & 1606  & 21 \\
-% dahu-32.grenoble  & 453  & 123  & 165  & 219  & 252  & 588  & 1539  & 23 \\
-% degroot  & 849  & 161  & 204  & 287  & 439  & 802  & 2260  & 25 \\
-% graphite-4.nancy  & 357  & 120  & 150  & 191  & 247  & 464  & 1291  & 23 \\
-% paravance-51.rennes  & 397  & 117  & 166  & 215  & 232  & 411  & 1527  & 24 \\
-% uvb-9.sophia  & 432  & 145  & 175  & 248  & 325  & 672  & 2079  & 24 \\
-% \bottomrule
-% \end{tabular}
-% \end{table}
-
-
-
-% \paragraph{IPFS - miletus degroot nancy}
-% % Please add the following required packages to your document preamble:
-% % \usepackage{booktabs}
-% \begin{table}[H]
-% \caption{Table for experiment disconnect}
-% \begin{tabular}{@{}lcccccccc@{}}
-% \toprule
-% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-% degroot  & 945  & 639  & 2375  & 771  & 1761  & 801  & 3308  & 12 \\
-% graphite-3.nancy  & 1618  & 938  & 1601  & 4838  & 1653  & 2231  & 5079  & 12 \\
-% miletus  & 443  & 2086  & 1064  & 3974  & 2504  & 3101  & 7313  & 12 \\
-% \bottomrule
-% \end{tabular}
-% \end{table}
-
-% % Please add the following required packages to your document preamble:
-% % \usepackage{booktabs}
-% \begin{table}[H]
-% \caption{Table for experiment do-not-cache}
-% \begin{tabular}{@{}lcccccccc@{}}
-% \toprule
-% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-% degroot  & 158  & 100  & 117  & 143  & 232  & 522  & 2008  & 16 \\
-% graphite-3.nancy  & 244  & 152  & 164  & 195  & 288  & 678  & 1881  & 15 \\
-% miletus  & 173  & 155  & 102  & 170  & 501  & 1269  & 3672  & 14 \\
-% \bottomrule
-% \end{tabular}
-% \end{table}
-
-% % Please add the following required packages to your document preamble:
-% % \usepackage{booktabs}
-% \begin{table}[H]
-% \caption{Table for experiment do-not-cache-disconnect}
-% \begin{tabular}{@{}lcccccccc@{}}
-% \toprule
-% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-% degroot  & 1993  & 343  & 755  & 385  & 3017  & 1207  & 2705  & 12 \\
-% graphite-3.nancy  & 532  & 909  & 1141  & 1285  & 1486  & 4015  & 2876  & 7 \\
-% miletus  & 302  & 1790  & 6352  & 1328  & 2343  & 3955  & 6663  & 9 \\
-% \bottomrule
-% \end{tabular}
-% \end{table}
-
-% % Please add the following required packages to your document preamble:
-% % \usepackage{booktabs}
-% \begin{table}[H]
-% \caption{Table for experiment normal}
-% \begin{tabular}{@{}lcccccccc@{}}
-% \toprule
-% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-% degroot  & 200  & 105  & 123  & 144  & 232  & 503  & 1810  & 16 \\
-% graphite-3.nancy  & 159  & 145  & 160  & 179  & 208  & 381  & 1258  & 16 \\
-% miletus  & 362  & 275  & 194  & 214  & 521  & 1738  & 6155  & 16 \\
-% \bottomrule
-% \end{tabular}
-% \end{table}
 
 
 
 
-% \paragraph{Swarm}
 
-% % Please add the following required packages to your document preamble:
-% % \usepackage{booktabs}
-% \begin{table}[H]
-% \caption{Table for experiment disconnect}
-% \begin{tabular}{@{}lcccccccc@{}}
-% \toprule
-% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-% chetemi-9.lille  & 23  & 106  & 316  & 294  & 1038  & 2725  & 8410  & 9 \\
-% dahu-9.grenoble  & 86  & 225  & 376  & 460  & 1146  & 3384  & 9339  & 9 \\
-% degroot  & 148  & 347  & 425  & 620  & 2008  & 5025  & 9884  & 3 \\
-% graphite-4.nancy  & 63  & 208  & 327  & 432  & 1102  & 3129  & 7469  & 9 \\
-% paravance-9.rennes  & 58  & 179  & 402  & 360  & 1018  & 3341  & 8612  & 10 \\
-% uvb-9.sophia  & 87  & 255  & 451  & 534  & 1377  & 3834  & 9508  & 6 \\
-% \bottomrule
-% \end{tabular}
-% \end{table}
 
-% % Please add the following required packages to your document preamble:
-% % \usepackage{booktabs}
-% \begin{table}[H]
-% \caption{Table for experiment do-not-cache}
-% \begin{tabular}{@{}lcccccccc@{}}
-% \toprule
-% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-% chetemi-9.lille  & 13  & 135  & 153  & 343  & 895  & 2671  & 6304  & 5 \\
-% dahu-9.grenoble  & 34  & 224  & 287  & 476  & 1189  & 3512  & 11754  & 6 \\
-% degroot  & 104  & 327  & 521  & 778  & 1744  & 4632  & 13793  & 9 \\
-% graphite-4.nancy  & 16  & 187  & 203  & 475  & 1153  & 3050  & 7832  & 4 \\
-% paravance-9.rennes  & 21  & 154  & 146  & 444  & 983  & 3155  & 7520  & 3 \\
-% uvb-9.sophia  & 54  & 292  & 280  & 489  & 1136  & 3402  & 11738  & 6 \\
-% \bottomrule
-% \end{tabular}
-% \end{table}
 
-% % Please add the following required packages to your document preamble:
-% % \usepackage{booktabs}
-% \begin{table}[H]
-% \caption{Table for experiment do-not-cache-disconnect}
-% \begin{tabular}{@{}lcccccccc@{}}
-% \toprule
-% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-% chetemi-9.lille  & 34  & 151  & 177  & 405  & 876  & 2616  & 7975  & 5 \\
-% dahu-9.grenoble  & 33  & 231  & 285  & 447  & 1073  & 3155  & 9418  & 5 \\
-% degroot  & 222  & 358  & 372  & 1040  & 1698  & 5321  & 11447  & 2 \\
-% graphite-4.nancy  & 32  & 234  & 326  & 382  & 920  & 2827  & 7647  & 5 \\
-% paravance-9.rennes  & 37  & 215  & 316  & 439  & 1043  & 3370  & 8176  & 6 \\
-% uvb-9.sophia  & 105  & 229  & 337  & 449  & 1212  & 3343  & 8950  & 6 \\
-% \bottomrule
-% \end{tabular}
-% \end{table}
 
-% % Please add the following required packages to your document preamble:
-% % \usepackage{booktabs}
-% \begin{table}[H]
-% \caption{Table for experiment normal}
-% \begin{tabular}{@{}lcccccccc@{}}
-% \toprule
-% Host    & \multicolumn{7}{c}{Data Size}          & Sample Size \\ \midrule
-% & 4kb  & 16kb  & 64kb  & 256kb  & 1mb  & 4mb  & 16mb             \\ \midrule
-% chetemi-9.lille  & 49  & 81  & 191  & 289  & 673  & 2086  & 9710  & 11 \\
-% dahu-9.grenoble  & 43  & 171  & 220  & 440  & 864  & 2633  & 9461  & 11 \\
-% degroot  & 119  & 331  & 524  & 621  & 1721  & 4418  & 12738  & 11 \\
-% graphite-4.nancy  & 32  & 186  & 229  & 426  & 915  & 2838  & 8037  & 8 \\
-% paravance-9.rennes  & 64  & 144  & 278  & 447  & 1017  & 2967  & 9319  & 10 \\
-% uvb-9.sophia  & 58  & 175  & 195  & 453  & 895  & 2677  & 10532  & 10 \\
-% \bottomrule
-% \end{tabular}
-% \end{table}
